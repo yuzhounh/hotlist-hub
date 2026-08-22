@@ -55,7 +55,7 @@ npx next build
    基于 Go 实现的多新闻平台热搜 API，实时抓取各大新闻网站的热搜内容，并提供统一的数据接口。
 
 7. **[tophubs/TopList](https://github.com/tophubs/TopList)**  
-   使用 Go 编写的今日热榜聚合项目，通过多协程异步抓取热门头条；原预览地址：[mo.fish](https://mo.fish)。
+   使用 Go 编写的今日热榜聚合项目，通过多协程异步抓取热门头条；原预览地址：[mo.fish](https://mo.fish)。今日热榜官网：[https://tophub.today/](https://tophub.today/)。
 
 8. **[huqi-pr/trending-in-one](https://github.com/huqi-pr/trending-in-one)**  
    归档今日头条、知乎与微博热搜，自 2020-11-29 起每小时抓取并按天保存。
