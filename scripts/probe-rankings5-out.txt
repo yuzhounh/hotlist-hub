@@ -1,0 +1,27 @@
+﻿tab1 series ids count 0 []
+titles []
+detail links []
+json chunks []
+tab2 series ids count 0 []
+mgtv len 21335
+rank 2
+µÄÆΦíîµª£ 0
+topList 0
+hotList 0
+videoId 0
+clipId 0
+rank snippet rankstart:e,rankdevote:e,chat:e,hostfund:e,stand:e,online:e,stars:e,gift:e,share:e,focus:e,hanhua:e,img:e},userCoin:0,codeTypeText:t,chatParams:{key:t,flag:t},customTheme:a,giftInfo:{},isPreviewMode:false,danmuSetting:a,delayTimerClose:false,cloudPlayerList:[],volumeList:[],relatedCameraId:t,playInstanceList:[],danmuThemeList:[],cameraDefinitionList:[]}},serverRendered:e,routePath:"/_FBR_",config:{_app:{basePath:"/",assetsPath:"/",cdnURL:"https://static.hitv.com/pc2/"}},reqStore:void 0}}(!0,"",n
+MGTV fail allowedRC=1&platform=pcweb&channelId=0&pn=1&pc=30 10004 σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ
+MGTV fail allowedRC=1&platform=pcweb&channelId=0&pn=1&pc=30 10004 σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ
+MGTV fail allowedRC=1&platform=pcweb&channelId=0&pn=1&pc=30 10004 σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ
+MGTV fail allowedRC=1&platform=pcweb&channelId=0&pn=1&pc=30 10004 σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ
+MGTV fail allowedRC=1&platform=pcweb&channelId=0&pn=1&pc=30 10004 σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ
+MGTV fail allowedRC=1&platform=pcweb&channelId=0&rankId=1&pn=1&pc=30 10004 σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ
+MGTV fail allowedRC=1&platform=pcweb&channelId=0&rankId=2&pn=1&pc=30 10004 σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ
+MGTV fail allowedRC=1&platform=pcweb&channelId=0&rankId=3&pn=1&pc=30 10004 σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ
+MGTV fail allowedRC=1&platform=pcweb&channelId=0&rankId=4&pn=1&pc=30 10004 σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ
+MGTV fail allowedRC=1&platform=pcweb&channelId=0&rankId=5&pn=1&pc=30 10004 σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ
+migu 200 http://m.music.migu.cn/migu/remoting/ranking_list_tag <!doctype html><html lang=zh-CN><head><meta charset=utf-8><meta http-equiv=Expires content=0><meta http-equiv=Pragma content=no-cache><meta http-equiv=Cache-control content=no-cache><meta http-equiv=Cache content=no-cache><meta name=format-detection content="telephone=no, address=no"><meta name=appl
+migu 200 http://m.music.migu.cn/migu/remoting/ranking_list_tag <!doctype html><html lang=zh-CN><head><meta charset=utf-8><meta http-equiv=Expires content=0><meta http-equiv=Pragma content=no-cache><meta http-equiv=Cache-control content=no-cache><meta http-equiv=Cache content=no-cache><meta name=format-detection content="telephone=no, address=no"><meta name=appl
+migu 200 https://c.musicapp.migu.cn/v3.0/content/query_rank_content.do {"code":"299996","info":"Φ╖»τö▒Φ»╖µ▒éΣ╕ìµö»µîü","exceptionReturnType":null}
+migu 200 https://c.musicapp.migu.cn/v3.0/content/query_rank_content.do {"code":"299996","info":"Φ╖»τö▒Φ»╖µ▒éΣ╕ìµö»µîü","exceptionReturnType":null}

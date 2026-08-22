@@ -1,0 +1,78 @@
+﻿tab 1 series_id count 24
+series_id=7676472016572009497" class="pc-card-DQXf3W m-card-V7QopP"><div class="pc-img-container-lewSpn m-img-container-w8VcQ5"><div class="pc-img-zYP4Wp m-img-snzjMw" style="opacity:1"><picture class="picture-FtO8FS "><source srcSet="https://p3-novel.byteimg.com/novel-pic/c4b960a727dcd7d631fd058cbc8e7287~tplv-shrink:640:0.webp" type="image/webp"/><img class="image-PWlIcn" src="https://p3-novel.by
+tab 2 series_id count 0
+
+
+ 200 https://www.mgtv.com/ len 21335
+  videoId 0
+  clipId 0
+  title 4
+  rank 2
+  hot 1
+ sample video undefined
+
+ 200 https://www.mgtv.com/?_source_=D len 21335
+  videoId 0
+  clipId 0
+  title 4
+  rank 2
+  hot 1
+ sample video undefined
+
+ 200 https://www.mgtv.com/404.html len 33182
+  videoId 0
+  clipId 0
+  title 87
+  rank 0
+  hot 0
+ sample video undefined
+
+migu html len 2755 <!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-control" content="no-cache" />
+    <meta http-equiv="Cache" content="no-cache" />
+    <link
+      rel="icon"
+      href="//h5.nf.migu.cn/app/favicon.
+
+migu h5 404 https://h5.nf.migu.cn/app/v4/p/rank/detail.html?rankId=2625440 898
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>τü½µÿƒµâàµèÑ</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,minimum-scale=1">
+<meta name="format-detection" content="telephone=no">
+<script src="http://h5.nf.migu.cn/app/v3/static/js/rem/index.min.js"></script>
+<link rel="stylesheet" href="http://h5.nf.migu.cn/app/v3/static/styles/common/base.min.css">
+<style>
+	.container-
+
+migu h5 404 https://h5.nf.migu.cn/app/v4/p/rank/detail.html?rankId=23189399 898
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>τü½µÿƒµâàµèÑ</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,minimum-scale=1">
+<meta name="format-detection" content="telephone=no">
+<script src="http://h5.nf.migu.cn/app/v3/static/js/rem/index.min.js"></script>
+<link rel="stylesheet" href="http://h5.nf.migu.cn/app/v3/static/styles/common/base.min.css">
+<style>
+	.container-
+
+migu h5 404 https://h5.nf.migu.cn/app/v4/p/rank/detail.html?rankId=2 898
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>τü½µÿƒµâàµèÑ</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,minimum-scale=1">
+<meta name="format-detection" content="telephone=no">
+<script src="http://h5.nf.migu.cn/app/v3/static/js/rem/index.min.js"></script>
+<link rel="stylesheet" href="http://h5.nf.migu.cn/app/v3/static/styles/common/base.min.css">
+<style>
+	.container-
