@@ -38,6 +38,27 @@ async function fetchDailyHot(source: string) {
   return { updatedTime: data.updateTime, items };
 }
 
+async function fetchHelti(source: string) {
+  const upstream = await fetch(`https://ttkit.cn/daily-hot/api/${encodeURIComponent(source)}`, {
+    headers: { ...browserHeaders, Referer: 'https://ttkit.cn/daily-hot' },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!upstream.ok) throw new Error(`HelTi returned ${upstream.status}`);
+  const data = await upstream.json() as {
+    updateTime?: number | string;
+    data?: Array<UnifiedItem & { hot?: string | number }>;
+  };
+  const items = (data.data ?? []).map((item, index) => ({
+    id: item.id ?? item.url ?? index,
+    title: item.title,
+    url: item.url,
+    mobileUrl: item.mobileUrl,
+    extra: item.extra ?? (item.hot !== undefined ? { info: String(item.hot) } : undefined),
+  }));
+  return { updatedTime: data.updateTime, items };
+}
+
 async function fetchCaixin() {
   const upstream = await fetch('https://www.caixin.com/', {
     headers: browserHeaders,
@@ -720,6 +741,8 @@ export async function GET(request: NextRequest) {
       data = await fetchOfficial(sourceId);
     } else if (definition.provider === 'newsnow') {
       data = await fetchNewsNow(definition.upstreamId);
+    } else if (definition.provider === 'helti') {
+      data = await fetchHelti(definition.upstreamId);
     } else if (definition.provider === 'direct') {
       data = await fetchDirect(definition.upstreamId);
     } else {

@@ -1,6 +1,6 @@
 import { OFFICIAL_SOURCE_IDS } from './official-source-ids';
 
-export type SourceProvider = 'newsnow' | 'dailyhot' | 'direct';
+export type SourceProvider = 'newsnow' | 'dailyhot' | 'helti' | 'direct';
 
 export type PlatformDefinition = {
   name: string;
@@ -127,7 +127,7 @@ export const sourceCatalog: PlatformDefinition[] = [
   source('爱范儿', '范', '#ff4b4b', '科技', 'dailyhot', 'ifanr', 'https://www.ifanr.com/'),
   source('IT之家·喜加一', '喜', '#d71920', '游戏', 'dailyhot', 'ithome-xijiayi', 'https://www.ithome.com/'),
   source('简书', '简', '#ea6f5a', '生活', 'direct', 'jianshu', 'https://www.jianshu.com/'),
-  source('京东热榜', '京', '#e1251b', '生活', 'direct', 'jd', 'https://www.jd.com/'),
+  source('京东热榜', '京', '#e1251b', '生活', 'helti', 'jd', 'https://www.jd.com/'),
   source('快手热榜', '快', '#ff4906', '视频', 'dailyhot', 'kuaishou', 'https://www.kuaishou.com/'),
   source('英雄联盟', 'LOL', '#b08a46', '游戏', 'dailyhot', 'lol', 'https://lol.qq.com/'),
   source('米游社', '米', '#3b82f6', '游戏', 'dailyhot', 'miyoushe', 'https://www.miyoushe.com/'),
@@ -141,7 +141,7 @@ export const sourceCatalog: PlatformDefinition[] = [
   source('什么值得买', '值', '#f04848', '生活', 'dailyhot', 'smzdm', 'https://www.smzdm.com/'),
   source('崩坏：星穹铁道', '星', '#6f78b8', '游戏', 'dailyhot', 'starrail', 'https://www.miyoushe.com/sr/'),
   source('淘宝热榜', '淘', '#ff5000', '生活', 'direct', 'taobao', 'https://www.taobao.com/'),
-  source('同花顺财经', '同', '#d71920', '财经', 'direct', 'tonghuashun', 'https://www.10jqka.com.cn/'),
+  source('同花顺财经', '同', '#d71920', '财经', 'helti', 'tonghuashun', 'https://www.10jqka.com.cn/'),
   source('中央气象台', '气', '#2d78c4', '生活', 'dailyhot', 'weatheralarm', 'https://www.nmc.cn/'),
   source('微信读书飙升榜', '读', '#22a45d', '阅读', 'direct', 'weread-rising', 'https://weread.qq.com/web/category/rising'),
   source('微信读书新书榜', '新', '#22a45d', '阅读', 'direct', 'weread-newbook', 'https://weread.qq.com/web/category/newbook'),

@@ -37,19 +37,16 @@ npx next build
 热榜汇的设计、数据接入与实现调研受益于以下开源项目，在此向所有作者和贡献者表示感谢。
 
 1. **[imsyy/DailyHotApi](https://github.com/imsyy/DailyHotApi)**  
-   🔥 今日热榜 API，一个聚合热门数据的 API 接口，支持 RSS 模式及 Vercel 部署。配套前端：[imsyy/DailyHot](https://github.com/imsyy/DailyHot)，在线页面：[今日热榜](https://hot.imsyy.top/#/)。  
-   测试备注：调研时页面数据全部加载失败。
+   今日热榜 API，一个聚合热门数据的 API 接口，支持 RSS 模式及 Vercel 部署。配套前端：[imsyy/DailyHot](https://github.com/imsyy/DailyHot)，在线页面：[今日热榜](https://hot.imsyy.top/#/)。
 
 2. **[liubaicai/DailyHot](https://github.com/liubaicai/DailyHot)**  
    适合 AI 订阅的新闻聚合站。其 [DailyHot API](https://daily-hot-for-ai.vercel.app/) 聚合 50+ 平台热榜数据，支持 JSON / RSS 输出，便于 AI Agent 集成。
 
 3. **[ourongxing/newsnow](https://github.com/ourongxing/newsnow)**  
-   Elegant reading of real-time and hottest news。在线页面：[NewsNow｜最热](https://newsnow.busiyi.world/c/hottest)。  
-   测试备注：能够成功获取数据并实时更新，体验良好。
+   Elegant reading of real-time and hottest news。在线页面：[NewsNow｜最热](https://newsnow.busiyi.world/c/hottest)。
 
 4. **[HelTi/daily-hot-api](https://github.com/HelTi/daily-hot-api)**  
-   基于 NestJS 的每日热点聚合 API 服务，支持多平台热榜、手动部署、PM2、Docker、数据存储、历史热点查询、RSS 订阅及 AI 热点分析报告。在线页面：[每日热点](https://ttkit.cn/daily-hot)。  
-   测试备注：能够成功获取数据并实时更新。
+   基于 NestJS 的每日热点聚合 API 服务，支持多平台热榜、手动部署、PM2、Docker、数据存储、历史热点查询、RSS 订阅及 AI 热点分析报告。在线页面：[每日热点](https://ttkit.cn/daily-hot)。
 
 5. **[chenyiyao/TrendRadar](https://github.com/chenyiyao/TrendRadar)**  
    AI 驱动的舆情与趋势监控工具，聚合多平台热点和 RSS，支持关键词筛选、AI 翻译与分析、MCP，以及微信、飞书、钉钉、Telegram、邮件、ntfy、Bark、Slack 等推送渠道。
@@ -58,12 +55,10 @@ npx next build
    基于 Go 实现的多新闻平台热搜 API，实时抓取各大新闻网站的热搜内容，并提供统一的数据接口。
 
 7. **[tophubs/TopList](https://github.com/tophubs/TopList)**  
-   使用 Go 编写的今日热榜聚合项目，通过多协程异步抓取热门头条；原预览地址：[mo.fish](https://mo.fish)。  
-   状态备注：约 5～7 年前的项目，目前已失效，仅作历史参考。
+   使用 Go 编写的今日热榜聚合项目，通过多协程异步抓取热门头条；原预览地址：[mo.fish](https://mo.fish)。
 
 8. **[huqi-pr/trending-in-one](https://github.com/huqi-pr/trending-in-one)**  
-   归档今日头条、知乎与微博热搜，自 2020-11-29 起每小时抓取并按天保存。  
-   状态备注：约 4～6 年前的项目，现已停止更新，仅作历史参考。
+   归档今日头条、知乎与微博热搜，自 2020-11-29 起每小时抓取并按天保存。
 
 9. **justjavac 热榜归档项目**  
    以下三个项目仍在维护，均采用每小时抓取、按天归档的方式保存历史榜单：
@@ -77,8 +72,6 @@ npx next build
 
 11. **[ShellMonster/DailyHotApi-Go](https://github.com/ShellMonster/DailyHotApi-Go)**  
     基于 `imsyy/DailyHotApi` 的 Go 语言高性能重构版本，为 60+ 新闻、社交与科技热榜提供统一 API。
-
-> 可用性与维护状态备注来自项目调研时的实际观察，可能随上游服务变化而改变。
 
 ## 说明
 

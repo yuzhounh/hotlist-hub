@@ -36,7 +36,6 @@ export const OFFICIAL_SOURCE_IDS = new Set([
   'newsnow:gelonghui',
   'dailyhot:history',
   'dailyhot:honkai',
-  'dailyhot:kuaishou',
   'dailyhot:lol',
   'dailyhot:miyoushe',
   'dailyhot:netease-news',
