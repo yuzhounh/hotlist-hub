@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { categories, categoryCounts, platformFetchLabel, sourceCatalog, type PlatformDefinition } from './source-catalog';
 import { HeaderActions } from './components/header-actions';
+import { useAuth } from './components/auth-provider';
 
 type HotItem = { title: string; url?: string; heat?: string; rising?: boolean };
 type Platform = PlatformDefinition & {
@@ -306,7 +307,8 @@ async function fetchPlatform(platform: Platform): Promise<Platform> {
 }
 
 export default function Home() {
-  const [category, setCategory] = useState(FAVORITES_CATEGORY);
+  const { user, ready: authReady } = useAuth();
+  const [category, setCategory] = useState('全部');
   const [query, setQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -323,6 +325,7 @@ export default function Home() {
   const dragSourceRef = useRef<string | null>(null);
   const platformGridRef = useRef<HTMLElement | null>(null);
   const shouldScrollAfterPageChange = useRef(false);
+  const resolvedCategoryUserId = useRef<string | null | undefined>(undefined);
 
   const wideSources = useMemo(() => new Set(cardPrefs.wide), [cardPrefs.wide]);
   const expandedSources = useMemo(() => new Set(cardPrefs.expanded), [cardPrefs.expanded]);
@@ -517,6 +520,16 @@ export default function Home() {
 
     return () => cancelAnimationFrame(frame);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!clientReady || !authReady) return;
+    const userId = user?.uid ?? null;
+    if (resolvedCategoryUserId.current === userId) return;
+
+    setCategory(userId && favoriteSources.size > 0 ? FAVORITES_CATEGORY : '全部');
+    setCurrentPage(1);
+    resolvedCategoryUserId.current = userId;
+  }, [authReady, clientReady, favoriteSources.size, user?.uid]);
 
   const refreshVisible = useCallback(() => {
     void loadPlatforms(pagedSources, true);
