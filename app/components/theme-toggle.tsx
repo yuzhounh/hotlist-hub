@@ -1,0 +1,71 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+export const THEME_KEY = 'rebanghui-theme';
+
+function readTheme(): 'light' | 'dark' {
+  if (typeof document === 'undefined') return 'light';
+  const stored = localStorage.getItem(THEME_KEY);
+  if (stored === 'dark' || stored === 'light') return stored;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyTheme(theme: 'light' | 'dark') {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem(THEME_KEY, theme);
+}
+
+function SunIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+    </svg>
+  );
+}
+
+export function ThemeToggle() {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const current = readTheme();
+      applyTheme(current);
+      setTheme(current);
+      setReady(true);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const toggle = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    setTheme(next);
+  };
+
+  const nextThemeLabel = theme === 'dark' ? '切换浅色模式' : '切换深色模式';
+
+  return (
+    <button
+      className="header-icon-btn"
+      type="button"
+      aria-label={nextThemeLabel}
+      title={nextThemeLabel}
+      onClick={toggle}
+      disabled={!ready}
+    >
+      {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+    </button>
+  );
+}

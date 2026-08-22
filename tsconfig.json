@@ -31,5 +31,13 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    ".next",
+    ".vinext",
+    "dist",
+    "work",
+    ".tmp-icons",
+    ".tmp-*.mjs"
+  ]
 }

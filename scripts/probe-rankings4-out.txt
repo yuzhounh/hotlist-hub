@@ -1,0 +1,68 @@
+﻿rankType 0 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 1 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 2 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 3 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 4 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 5 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 6 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 7 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 8 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 9 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 10 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 11 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 12 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 13 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 14 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 15 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 16 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 17 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 18 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 19 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+rankType 20 code 10004 msg σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ len undefined undefined
+alt allowedRC=1&platform=pcweb&channelId=1&rankType=1&pn=1&pc=5 code 10004 len undefined
+alt allowedRC=1&platform=pcweb&channelId=0&rankType=1&pn=1&pc=5&_support=10000000 code 10004 len undefined
+alt allowedRC=1&platform=pcweb&channelId=0&cId=0&rankType=1&pn=1&pc=5 code 10004 len undefined
+alt allowedRC=1&platform=pcweb&channelId=0&rankType=1&pn=1&pc=5&version=5.5.35 code 10004 len undefined
+alt allowedRC=1&platform=pcweb&channelId=0&rankType=1&pn=1&pc=5&uuid=ffffffff-ffff-f code 10004 len undefined
+alt allowedRC=1&platform=pcweb&channelId=0&rankType=1&pn=1&pc=5&ticket= code 10004 len undefined
+alt allowedRC=1&platform=pcweb&channelId=0&rankType=1&pn=1&pc=5&abroad=0 code 10004 len undefined
+alt allowedRC=1&platform=pcweb&channelId=0&rankType=1&pn=1&pc=5&src=mgtv&did=fffffff code 10004 len undefined
+hg length 207911
+book_id 0
+series_id 51
+video_id 0
+playlet 0
+book_name 0
+title 172
+href="/detail 24
+hongguoduanju.com/detail 0
+detail links [
+  'href="//p11-novel-seo.byteimg.com"',
+  'href="//p3-novel-sign.byteimg.com"',
+  'href="//p6-novel-sign.byteimg.com"',
+  'href="//p9-novel-sign.byteimg.com"',
+  'href="//lf-fe.fqnovelstatic.com"',
+  'href="//lf-dy-sourcecdn-tos.bytegecko.com"',
+  'href="//p11-novel-seo.byteimg.com"',
+  'href="//lf-fe.fqnovelstatic.com"',
+  'href="//p3-novel.byteimg.com"',
+  'href="//p6-novel.byteimg.com"'
+]
+migu 200 https://app.c.nf.migu.cn/MIGUM2.0/v1.0/content/queryRankContent?rankId=2625440&pageNo=1&pageSize=30 {"code":"299996","info":"Φ╖»τö▒Φ»╖µ▒éΣ╕ìµö»µîü","exceptionReturnType":null}
+migu 200 https://app.c.nf.migu.cn/MIGUM2.0/v1.0/content/queryRankContent?rankId=23189399&pageNo=1&pageSize=30 {"code":"299996","info":"Φ╖»τö▒Φ»╖µ▒éΣ╕ìµö»µîü","exceptionReturnType":null}
+migu 404 https://jadeite.migu.cn/jadeite-rank/queryRankContent?rankId=2625440&pageNo=1&pageSize=30 <html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+migu 404 https://jadeite.migu.cn/jadeite-rank/queryRankContent?rankId=23189399&pageNo=1&pageSize=30 <html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+

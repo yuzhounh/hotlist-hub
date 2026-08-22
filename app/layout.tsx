@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { Providers } from './providers';
+import { ThemeInitScript } from './components/theme-init';
 import './globals.css';
 
 const geistSans = Geist({
@@ -13,19 +15,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: '热榜汇｜此刻，人们在关心什么',
-  description: '聚合正在上升的公共话题，合并相同事件，直观呈现跨平台热度变化。',
+  metadataBase: new URL('https://hotlist-hub.vercel.app'),
+  title: '热榜汇｜全网热榜卡片墙',
+  description: '全网热榜一屏尽览，聚合微博、知乎、抖音、新闻、科技与开发者平台，打开即看此刻热点。',
   openGraph: {
-    title: '热榜汇｜此刻，人们在关心什么',
-    description: '聚合正在上升的公共话题，合并相同事件，直观呈现跨平台热度变化。',
-    images: [{ url: '/og.png', width: 1732, height: 909, alt: '热榜汇｜此刻，人们在关心什么' }],
+    title: '热榜汇｜全网热榜卡片墙',
+    description: '全网热榜一屏尽览，此刻正在发生。',
+    images: [{ url: '/og.png', width: 1732, height: 909, alt: '热榜汇｜全网热榜卡片墙' }],
     locale: 'zh_CN',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: '热榜汇｜此刻，人们在关心什么',
-    description: '聚合正在上升的公共话题，合并相同事件，直观呈现跨平台热度变化。',
+    title: '热榜汇｜全网热榜卡片墙',
+    description: '全网热榜一屏尽览，此刻正在发生。',
     images: ['/og.png'],
   },
 };
@@ -36,11 +39,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <ThemeInitScript />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

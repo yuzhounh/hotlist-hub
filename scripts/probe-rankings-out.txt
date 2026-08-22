@@ -1,0 +1,102 @@
+﻿
+=== qidian 202 https://www.qidian.com/rank/hotsales/
+<!DOCTYPE html><html>
+<head>
+  <meta charset="UTF-8">
+  <script>
+    var buid = "fffffffffffffffffff"
+  </script>
+  <script src="/C2WF946J0/probe.js?v=vc1jasc"></script>
+</head>
+<body></body>
+</body>
+</html>
+ 
+
+=== qidian 202 https://www.qidian.com/rank/readindex/
+<!DOCTYPE html><html>
+<head>
+  <meta charset="UTF-8">
+  <script>
+    var buid = "fffffffffffffffffff"
+  </script>
+  <script src="/C2WF946J0/probe.js?v=vc1jasc"></script>
+</head>
+<body></body>
+</body>
+</html>
+ 
+
+=== qidian 200 https://m.qidian.com/api/rank/hotsales?pageIndex=1&pageSize=30
+<script>!function(){try{var m=document.cookie.match(/(?:^|; )x-waf-captcha-referer=([^;]*)/);if(m&&m[1]){Object.defineProperty(document,"referrer",{value:decodeURIComponent(m[1])});document.cookie="x-waf-captcha-referer=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT"}}catch(e){}try{var ref=document.referrer;if(ref){var c="seo-jump-referrer="+encodeURIComponent(ref)+"; max-age=60; path=/; domain="+".qidian.com";if(c.length<4096)document.cookie=c}}catch(e){}try{var t=new URL("https://www.qidian.com/",location.origin);new URL(location.href).searchParams.forEach(function(v,k){if(!t.searchParams.has(k))t.searchParams.set(k,v)});t.searchParams.set("source","m_jump");location.replace(t.toString())}catch(e){location.replace("https://www.qidian.com/")}}();</script>
+
+=== qidian 202 https://www.qidian.com/ajax/book/category/booklist?categoryId=-1&subCategoryId=-1&pageNum=1&pageSize=30&order=4
+<!DOCTYPE html><html>
+<head>
+  <meta charset="UTF-8">
+  <script>
+    var buid = "fffffffffffffffffff"
+  </script>
+  <script src="/C2WF946J0/probe.js?v=vc1jasc"></script>
+</head>
+<body></body>
+</body>
+</html>
+ 
+
+=== hongguo 200 https://hongguoduanju.com/category?tab=1
+<!doctype html><html><head><link rel="preconnect" href="//p11-novel-seo.byteimg.com"><link rel="preconnect" href="//p3-novel-sign.byteimg.com"><link rel="preconnect" href="//p6-novel-sign.byteimg.com"><link rel="preconnect" href="//p9-novel-sign.byteimg.com"><link rel="preconnect" href="//lf-fe.fqnovelstatic.com"><link rel="preconnect" href="//lf-dy-sourcecdn-tos.bytegecko.com"><link rel="dns-prefetch" href="//p11-novel-seo.byteimg.com"><link rel="dns-prefetch" href="//lf-fe.fqnovelstatic.com"><link rel="dns-prefetch" href="//p3-novel.byteimg.com"><link rel="dns-prefetch" href="//p6-novel.byteimg.com"><link rel="dns-prefetch" href="//p3-novel-sign.byteimg.com"><link rel="dns-prefetch" href="//p6-novel-sign.byteimg.com"><link rel="dns-prefetch" href="//p9-novel-sign.byteimg.com"><link rel="dns-prefetch" href="//lf-dy-sourcecdn-tos.bytegecko.com"><link rel="icon" href="https://lf-fe.fqnovelstatic.com/obj/novel-fanqie-fe/growth/incentive-h5-monorepo/apps/hongguo/app-logo.png"><meta charse
+
+hongguo next pageProps keys []
+hongguo sample {}
+
+=== hongguo2 200 https://hongguoduanju.com/category?tab=2
+<!doctype html><html><head><link rel="preconnect" href="//p11-novel-seo.byteimg.com"><link rel="preconnect" href="//p3-novel-sign.byteimg.com"><link rel="preconnect" href="//p6-novel-sign.byteimg.com"><link rel="preconnect" href="//p9-novel-sign.byteimg.com"><link rel="preconnect" href="//lf-fe.fqnovelstatic.com"><link rel="preconnect" href="//lf-dy-sourcecdn-tos.bytegecko.com"><link rel="dns-prefetch" href="//p11-novel-seo.byteimg.com"><link rel="dns-prefetch" href="//lf-fe.fqnovelstatic.com"><link rel="dns-prefetch" href="//p3-novel.byteimg.com"><link rel="dns-prefetch" href="//p6-novel.byteimg.com"><link rel="dns-prefetch" href="//p3-novel-sign.byteimg.com"><link rel="dns-prefetch" href="//p6-novel-sign.byteimg.com"><link rel="dns-prefetch" href="//p9-novel-sign.byteimg.com"><link rel="dns-prefetch" href="//lf-dy-sourcecdn-tos.bytegecko.com"><link rel="icon" href="https://lf-fe.fqnovelstatic.com/obj/novel-fanqie-fe/growth/incentive-h5-monorepo/apps/hongguo/app-logo.png"><meta charse
+
+=== hongguo2 ERR fetch failed
+
+=== migu 200 https://music.migu.cn/v3/api/music/topSong?topId=2&page=1&pageSize=30
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-control" content="no-cache" />
+    <meta http-equiv="Cache" content="no-cache" />
+    <link rel="icon" href="./favicon.png" type="image/png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>σÆ¬σÆòΘƒ│Σ╣É</title>
+    <script type="module" crossorigin src="./static/js/main-747aa123.js"></script>
+    <link rel="modulepreload" crossorigin href="./static/js/@migusdk-617e3513.js">
+    <link rel="modulepreload" crossorigin href="./static/js/@vue-df20709a.js">
+    <link rel="modulepreload" crossorigin href="./static/js/mitt-f7ef348c.js">
+    <link rel="modulepreload" crossorigin href="./static/js/vue-demi-71ba0ef2.js">
+    <link rel="modulepreload" crossorigin href="./static/js/pinia-0985cfc4.js">
+    <link rel="modulepreload" crossorigin href="./static/js/@element-plus-1821b5ee.js">
+    <link rel="modulepreload"
+
+=== migu 200 https://u.musicapp.migu.cn/v3.0/h5/rank?columnId=2&pageIndex=1&pageSize=30
+{"code":"299996","info":"Φ╖»τö▒Φ»╖µ▒éΣ╕ìµö»µîü","exceptionReturnType":null}
+  keys [ 'code', 'info', 'exceptionReturnType' ] code 299996 sample {"code":"299996","info":"Φ╖»τö▒Φ»╖µ▒éΣ╕ìµö»µîü","exceptionReturnType":null}
+
+=== migu 200 https://c.musicapp.migu.cn/v3.0/h5/rank?columnId=2&pageIndex=1&pageSize=30
+{"code":"299996","info":"Φ╖»τö▒Φ»╖µ▒éΣ╕ìµö»µîü","exceptionReturnType":null}
+  keys [ 'code', 'info', 'exceptionReturnType' ] code 299996 sample {"code":"299996","info":"Φ╖»τö▒Φ»╖µ▒éΣ╕ìµö»µîü","exceptionReturnType":null}
+
+=== migu ERR fetch failed
+
+=== mgtv 200 https://pcweb.api.mgtv.com/rank/list?allowedRC=1&platform=pcweb&channelId=0&pn=1&pc=30
+{"msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","code":10004,"data":{},"err_msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","err_code":10004}
+  code 10004 list len undefined sample {"msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","code":10004,"data":{},"err_msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","err_code":10004}
+
+=== mgtv 200 https://pcweb.api.mgtv.com/rank/list?allowedRC=1&platform=pcweb&channelId=1&pn=1&pc=30
+{"msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","code":10004,"data":{},"err_msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","err_code":10004}
+  code 10004 list len undefined sample {"msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","code":10004,"data":{},"err_msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","err_code":10004}
+
+=== mgtv 200 https://pcweb.api.mgtv.com/rank/list?allowedRC=1&platform=pcweb&channelId=2&pn=1&pc=30
+{"msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","code":10004,"data":{},"err_msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","err_code":10004}
+  code 10004 list len undefined sample {"msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","code":10004,"data":{},"err_msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","err_code":10004}
+
+=== mgtv 200 https://pcweb.api.mgtv.com/rank/list?allowedRC=1&platform=pcweb&channelId=3&pn=1&pc=30
+{"msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","code":10004,"data":{},"err_msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","err_code":10004}
+  code 10004 list len undefined sample {"msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","code":10004,"data":{},"err_msg":"σÅéµò░σ╝éσ╕╕∩╝îΦ»╖µúÇµƒÑ","err_code":10004}

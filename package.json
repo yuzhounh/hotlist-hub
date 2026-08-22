@@ -9,9 +9,11 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "vinext start",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "sync-logos": "node scripts/sync-logos.mjs"
   },
   "dependencies": {
+    "firebase": "^12.18.0",
     "next": "16.2.6",
     "react": "19.2.6",
     "react-dom": "19.2.6"
@@ -29,6 +31,7 @@
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",
     "react-server-dom-webpack": "19.2.6",
+    "sharp": "^0.34.5",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "vinext": "1.0.0-beta.3",

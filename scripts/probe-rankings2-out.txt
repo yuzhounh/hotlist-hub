@@ -1,0 +1,275 @@
+﻿
+ 200 https://m.qidian.com/rank/hotsales
+qidian ctx keys [
+  '_pageId',            'isMM',
+  'mDomain',            'pcDomain',
+  'abPolicy',           'pageProps',
+  'pageTrackReportExt', 'routeParams',
+  'urlPathname',        'INITIAL_STATE',
+  'urlOriginal',        'hostname',
+  'errorMsg',           'redirectUrl',
+  'userAgent'
+]
+pageData type object [
+  '_pageId',            'isMM',
+  'mDomain',            'pcDomain',
+  'abPolicy',           'pageProps',
+  'pageTrackReportExt', 'routeParams',
+  'urlPathname',        'INITIAL_STATE',
+  'urlOriginal',        'hostname',
+  'errorMsg',           'redirectUrl',
+  'userAgent'
+]
+sample {"_pageId":"/src/pages/rankDetail/index","isMM":false,"mDomain":"m.qidian.com","pcDomain":"www.qidian.com","abPolicy":{"g17":1,"g16":0,"g18":0,"g19":0,"g14":0},"pageProps":{"pageData":{"total":1000,"gender":"male","isLast":0,"records":[{"catId":21,"bName":"σñ£µùáτûå","rankNum":1,"cat":"τÄäσ╣╗","cnt":"389.75Σ╕çσ¡ù","subCatId":8,"bid":"1040765595","subCat":"Σ╕£µû╣τÄäσ╣╗","bAuth":"Φ╛░Σ╕£","desc":"ΘéúΣ╕Çσñ⌐σñ¬Θÿ│ΦÉ╜Σ╕ïσåìΣ╣ƒµ▓íµ£ëσìçΦ╡╖ΓÇªΓÇªΓÇªΓÇªΓÇªΓÇªΓÇª","_index":0},{"catId":22,"bName":"τÄäΘë┤Σ╗ÖµùÅ","rankNum":2,"cat":"Σ╗ÖΣ╛á","cnt":"617.63Σ╕çσ¡ù","subCatId":18,"bid":"1035420986","subCat":"Σ┐«τ£ƒµûçµÿÄ","bAuth":"σ¡úΦ╢èΣ║║","desc":"ΘÖåµ▒ƒΣ╗Öτå¼σñ£τî¥µ¡╗∩╝îµ«ïΘ¡éσì┤ΘÖäσ£¿Σ║åΣ╕ÇΘ¥óµ╗íµÿ»ΦúéτùòτÜäΘ¥Æτü░Φë▓Θô£Θò£Σ╕è∩╝îΘúÿΦÉ╜σê░Σ║åµ╡⌐τÇÜµùáσ₧áτÜäΣ┐«Σ╗ÖΣ╕ûτòîπÇéσç╢ΘÖ⌐ΘÜ╛µ╡ïτÜäσñºΘ╗Äσ▒▒∩╝îτ£ëσ░║µ▓│µùüσ░Åσ░ÅτÜäµ¥æΦÉ╜∩╝îΣ╕ÇΣ╕¬σ░Åσ«╢µùÅµï╛σê░Σ║åΦ┐Öµ₧ÜΘò£σ¡É∩╝îΣ║Äµÿ»Σ╝áΣ╗ÖΘüôµÄêΣ╗Öµ│ò∩╝îσ╝ÇσÉ»µ│óµ╛£σú«ΘÿöτÜäµû░µù╢Σ╗úπÇé(σ«╢µùÅΣ┐«Σ╗Ö∩╝îΣ╕ìσ£úµ»ì∩╝îτºìτö░∩╝îµùáτ│╗τ╗ƒ∩╝îτ╛ñσâÅµûç)","_index":1},{"catId":4,"bName":"µì₧σ░╕Σ║║","rankNum":3,"cat":"Θâ╜σ╕é","cnt":"645.29Σ╕çσ¡ù","subCatId":74,"bid":"1041637443","subCat":"σ╝éµ£»Φ╢àΦâ╜","bAuth":"τ║»µ┤üµ╗┤σ░ÅΘ╛Ö","desc":"Σ║║τƒÑΘ¼╝µüÉµÇû∩╝îΘ¼╝µÖôΣ║║σ┐âµ»ÆπÇéΦ┐Öµÿ»Σ╕Çµ£¼Σ╝áτ╗ƒτü╡σ╝éσ░ÅΦ»┤πÇé","_index":2},{"catId":21,"bName":"Φ»íτºÿΣ╣ïΣ╕╗","rankNum":4,"cat":"τÄäσ╣╗","cnt":"446.77Σ╕çσ¡ù","subCatId":73,"bid":"1010868264","subCat":"σ╝éΣ╕ûσñºΘÖå","bAuth":"τê▒µ╜£µ░┤τÜäΣ╣îΦ┤╝","desc":"Φ»íτºÿΣ╣ïΣ╕╗σè¿τö╗τë╣σê½τ»çσ╖▓σ£¿Φà╛Φ«»ΦºåΘóæΣ╕èµÆ¡σç║∩╝îµ¼óΦ┐Äσñºσ«╢σëìσÄ╗Φºéτ£ï∩╝üΦÆ╕µ▒╜Σ╕Äµ£║µó░τÜäµ╡¬µ╜«Σ╕¡∩╝îΦ░üΦâ╜ΦºªσÅèΘ¥₧σçí∩╝ƒσÄåσÅ▓σÆîΘ╗æµÜùτÜäΦ┐╖Θ¢╛Θçî∩╝îσÅêµÿ»Φ░üσ£¿ΦÇ│Φ»¡∩╝ƒµêæΣ╗ÄΦ»íτºÿΣ╕¡ΘåÆµ¥Ñ∩╝îτ¥üτ£╝τ£ïΦºüΦ┐ÖΣ╕¬Σ╕ûτòî∩╝Üµ₧¬µó░∩╝îσñºτé«∩╝îσ╖¿Φê░∩╝îΘú₧τ⌐║Φëç∩╝îσ╖«σêåµ£║∩╝¢Θ¡öΦì»∩╝îσìáσì£∩╝îΦ»àσÆÆ∩╝îσÇÆσÉèΣ║║∩╝îσ░üσì░τë⌐ΓÇªΓÇªσàëµÿÄΣ╛¥µùºτàºΦÇÇ∩╝îτÑ₧τºÿΣ╗Äµ£¬Φ┐£τª╗∩╝îΦ┐Öµÿ»Σ╕Çµ«╡ΓÇ£µäÜΦÇàΓÇ¥τÜäΣ╝áΦ»┤πÇé","_index":3},{"catId":21,"bName":"Θ¥Æσ▒▒","rankNum":5,"cat":"τÄäσ╣╗","cnt":"256
+
+ 200 https://hongguoduanju.com/category?tab=1
+
+hongguo api urls []
+initial state none
+jsonld undefined
+
+ 200 https://api5-normal-lf.fqnovel.com/reading/bookapi/category/list/v/?category_id=0&tab_type=1&offset=0&limit=30&app_id=8662
+  body {"code":0,"message":"SUCCESS","data":[{"id":1,"name":"τÄ░Σ╗úΘâ╜σ╕é"},{"id":2,"name":"σ╝éΣ╕ûτÄäσ╣╗"},{"id":3,"name":"σ«ÿσ£║Φüîσ£║"},{"id":4,"name":"Θ¡öµ│òσÑçσ╣╗"},{"id":5,"name":"µ¡ªΣ╛áΣ╕ûτòî"},{"id":6,"name":"Σ╗ÖΣ╛áΣ┐«τ£ƒ"},{"id":7,"name":"σÄåσÅ▓τ⌐┐Φ╢è"},{"id":8,"name":"σå¢Σ║ïµêÿΣ║ë"},{"id":9,"name":"µé¼τûæτü╡σ╝é"},{"id":10,"name":"τºæσ╣╗µ£½Σ╕û"},{"id":11,"name":"µ╕╕µêÅτö╡τ½₧"},{"id":12,"name":"Σ╜ôΦé▓τ½₧µèÇ"},{"id":13,"name":"Σ║îµ¼íσàâ"}]}
+
+ 404 https://api5-normal-lf.fqnovel.com/reading/bookapi/rank/list/v/?rank_type=1&offset=0&limit=30&app_id=8662
+
+ 404 https://api5-normal-lf.fqnovel.com/reading/bookapi/rank/list/v/?rank_type=2&offset=0&limit=30&app_id=8662
+
+ 200 https://api5-normal-lf.fqnovel.com/reading/bookapi/category/list/v/?category_id=0&tab_type=2&offset=0&limit=30&app_id=8662
+  body {"message":"SUCCESS","data":[{"id":1,"name":"τÄ░Σ╗úΘâ╜σ╕é"},{"id":2,"name":"σ╝éΣ╕ûτÄäσ╣╗"},{"id":3,"name":"σ«ÿσ£║Φüîσ£║"},{"id":4,"name":"Θ¡öµ│òσÑçσ╣╗"},{"id":5,"name":"µ¡ªΣ╛áΣ╕ûτòî"},{"id":6,"name":"Σ╗ÖΣ╛áΣ┐«τ£ƒ"},{"id":7,"name":"σÄåσÅ▓τ⌐┐Φ╢è"},{"id":8,"name":"σå¢Σ║ïµêÿΣ║ë"},{"id":9,"name":"µé¼τûæτü╡σ╝é"},{"id":10,"name":"τºæσ╣╗µ£½Σ╕û"},{"id":11,"name":"µ╕╕µêÅτö╡τ½₧"},{"id":12,"name":"Σ╜ôΦé▓τ½₧µèÇ"},{"id":13,"name":"Σ║îµ¼íσàâ"}],"code":0}
+node : node:internal/modules/run_main:107
+At C:\Users\Jing Wang\AppData\Local\Temp\ps-script-8a2920dd-e478-414d-8c7c-85abe3e69557.ps1:110 char:1
++ node scripts/probe-rankings2.mjs 2>&1 | Out-File scripts/probe-rankin ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (node:internal/modules/run_main:107:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    triggerUncaughtException(
+    ^
+
+[TypeError: fetch failed] {
+  [cause]: Error [ERR_TLS_CERT_ALTNAME_INVALID]: Hostname/IP does not match certificate's altnames: Host: m.10086.cn. i
+s not in the cert's altnames: DNS:m.music.migu.cn, DNS:www.m.music.migu.cn
+      at Object.checkServerIdentity (node:tls:455:12)
+      at TLSSocket.onConnectSecure (node:internal/tls/wrap:1666:27)
+      at TLSSocket.emit (node:events:509:28)
+      at TLSSocket._finishInit (node:internal/tls/wrap:1102:8)
+      at ssl.onhandshakedone (node:internal/tls/wrap:888:12) {
+    code: 'ERR_TLS_CERT_ALTNAME_INVALID',
+    reason: "Host: m.10086.cn. is not in the cert's altnames: DNS:m.music.migu.cn, DNS:www.m.music.migu.cn",
+    host: 'm.10086.cn',
+    cert: {
+      subject: [Object: null prototype] { CN: 'm.music.migu.cn' },
+      issuer: [Object: null prototype] {
+        C: 'CN',
+        O: 'WoTrus CA Limited',
+        CN: 'WoTrus DV Server CA  [Run by the Issuer]'
+      },
+      subjectaltname: 'DNS:m.music.migu.cn, DNS:www.m.music.migu.cn',
+      infoAccess: [Object: null prototype] {
+        'CA Issuers - URI': [ 'http://aia.crlocsp.cn/WoTrusDVServerCA_2.crt' ],
+        'OCSP - URI': [ 'http://ocsp.crlocsp.cn' ]
+      },
+      ca: false,
+      modulus: '92694F7B69E3D15A7721ADEE8668C615194502C62D4578D30B4F4148DCD1C69ADCFEA3331D6B539ED4719C9887C2C5BC1A4E596
+2D97EC0731DC649BA4575F8260833A16F2F9399BC8B2C3E9DCB6D3C567FE522AC59E021BD609B006374E46D5057A1BE03039252D253C05336C8817A
+E4818BF3E0F22215322A8AB94FAE5FEDD67A7703F1A9E7BDC346C3994FE88FEDE928BB09832589C580A97ED0672C747E7151E85AC4ADF840D44FDC2
+E644B1B0ACEA259F255D61985929BC1675156FED43E6967AED2DCBE42F78EE704B11C7F08CCFB300CF0169984B42478D7815D63DAA48E308943615D
+EFC002062D77C7D0FE0B60A5F0AC8C464FDE703156226D39FFD1',
+      exponent: '0x10001',
+      pubkey: Buffer(294) [Uint8Array] [
+         48, 130,   1,  34,  48,  13,   6,   9,  42, 134,  72, 134,
+        247,  13,   1,   1,   1,   5,   0,   3, 130,   1,  15,   0,
+         48, 130,   1,  10,   2, 130,   1,   1,   0, 146, 105,  79,
+        123, 105, 227, 209,  90, 119,  33, 173, 238, 134, 104, 198,
+         21,  25,  69,   2, 198,  45,  69, 120, 211,  11,  79,  65,
+         72, 220, 209, 198, 154, 220, 254, 163,  51,  29, 107,  83,
+        158, 212, 113, 156, 152, 135, 194, 197, 188,  26,  78,  89,
+         98, 217, 126, 192, 115,  29, 198,  73, 186,  69, 117, 248,
+         38,   8,  51, 161,
+        ... 194 more items
+      ],
+      bits: 2048,
+      valid_from: 'Oct 24 00:00:00 2025 GMT',
+      valid_to: 'Oct 24 23:59:59 2026 GMT',
+      fingerprint: 'F3:78:7F:C0:C4:75:C7:2F:17:F6:CB:DF:E1:84:2C:AD:CD:89:E5:00',
+      fingerprint256: 'D0:13:51:59:CF:6C:9A:3C:A5:D1:79:F1:62:0E:23:B5:11:97:25:52:89:99:18:04:CE:12:FB:95:34:0C:D3:DF'
+,
+      fingerprint512: '4F:84:64:88:8B:E5:B9:E3:41:AF:A6:AB:8C:99:65:D8:B7:51:45:EC:D9:B3:25:5A:70:4E:B6:10:AF:52:7D:A9:
+3C:CF:EF:23:E2:79:55:D3:36:B8:41:5A:AF:94:86:D6:CD:3F:74:53:03:84:EA:99:19:C2:75:15:49:76:AB:74',
+      ext_key_usage: [ '1.3.6.1.5.5.7.3.1' ],
+      serialNumber: '93E4F736F11938BE7EEC5FB48AABB2DC',
+      raw: Buffer(1578) [Uint8Array] [
+         48, 130,   6,  38,  48, 130,   5,  14, 160,  3,  2,   1,
+          2,   2,  17,   0, 147, 228, 247,  54, 241, 25, 56, 190,
+        126, 236,  95, 180, 138, 171, 178, 220,  48, 13,  6,   9,
+         42, 134,  72, 134, 247,  13,   1,   1,  11,  5,  0,  48,
+         92,  49,  11,  48,   9,   6,   3,  85,   4,  6, 19,   2,
+         67,  78,  49,  26,  48,  24,   6,   3,  85,  4, 10,  19,
+         17,  87, 111,  84, 114, 117, 115,  32,  67, 65, 32,  76,
+        105, 109, 105, 116, 101, 100,  49,  49,  48, 47,  6,   3,
+         85,   4,   3,  12,
+        ... 1478 more items
+      ],
+      asn1Curve: undefined,
+      nistCurve: undefined,
+      issuerCertificate: {
+        subject: [Object: null prototype] {
+          C: 'CN',
+          O: 'WoTrus CA Limited',
+          CN: 'WoTrus DV Server CA  [Run by the Issuer]'
+        },
+        issuer: [Object: null prototype] {
+          C: 'US',
+          ST: 'New Jersey',
+          L: 'Jersey City',
+          O: 'The USERTRUST Network',
+          CN: 'USERTrust RSA Certification Authority'
+        },
+        subjectaltname: undefined,
+        infoAccess: [Object: null prototype] {
+          'CA Issuers - URI': [ 'http://crt.usertrust.com/USERTrustRSAAAACA.crt' ],
+          'OCSP - URI': [ 'http://ocsp.usertrust.com' ]
+        },
+        ca: true,
+        modulus: 'EC8134AE655355D45D34ECCAD63B11FD5A69CAE919FD76D081A9091CE860E97183B221DEFE5E41DCFC725F0D7C8C474DFBB63
+13F4AAC1B3F879506EC421E979702328E9CFFDA014C8AA6BBCB5BFE7473A08FAC4D385E5AA1A3E6FD085BD0DF8961089D81A0BED59A7A5BE61E0BBD
+FAAF308CAFDBCBD54B1ADD02F3468404A340F36C6E2C3DE3F5512D086BF8BCA3AB3302B1FE0C072FAF3099DA49294D2710F507CEB2F90C04FD56DA8
+B4809D294C991DA05CFB3B5301DA2F4A5391F863DFDBD7587C6424640A74B5F7C8470FE76B7581F3A58664FA4D15FA36431C6C1D8A0BDE849629F49
+64D81605B6D89F1E034DD3147628C26FCDA98B89EC65B9E771E9A5',
+        exponent: '0x10001',
+        pubkey: Buffer(294) [Uint8Array] [
+           48, 130,   1,  34,  48,  13,   6,   9,  42, 134,  72, 134,
+          247,  13,   1,   1,   1,   5,   0,   3, 130,   1,  15,   0,
+           48, 130,   1,  10,   2, 130,   1,   1,   0, 236, 129,  52,
+          174, 101,  83,  85, 212,  93,  52, 236, 202, 214,  59,  17,
+          253,  90, 105, 202, 233,  25, 253, 118, 208, 129, 169,   9,
+           28, 232,  96, 233, 113, 131, 178,  33, 222, 254,  94,  65,
+          220, 252, 114,  95,  13, 124, 140,  71,  77, 251, 182,  49,
+           63,  74, 172,  27,  63, 135, 149,   6, 236,  66,  30, 151,
+          151,   2,  50, 142,
+          ... 194 more items
+        ],
+        bits: 2048,
+        valid_from: 'Jan  8 00:00:00 2020 GMT',
+        valid_to: 'Jan  7 23:59:59 2030 GMT',
+        fingerprint: 'A0:42:A8:52:96:1B:90:D5:86:75:91:D0:EA:2B:99:6C:B9:EC:FE:F1',
+        fingerprint256: 'F8:E3:BF:1E:FE:08:EF:70:0C:4E:DB:FD:C4:FF:31:9D:58:EC:B7:80:DF:B0:DD:A7:D5:10:47:B3:9B:28:71:8
+E',
+        fingerprint512: '94:A7:4D:F8:A5:65:7B:CE:57:DE:EF:09:A2:99:38:E5:A5:AF:34:BA:4F:51:62:AA:5D:3C:B9:56:44:61:86:D
+E:28:8B:9A:A4:86:12:52:11:88:F4:CB:20:4F:1D:CB:E8:96:03:83:90:B0:67:A6:BD:B2:A4:7F:5C:67:5F:7B:D9',
+        ext_key_usage: [ '1.3.6.1.5.5.7.3.1', '1.3.6.1.5.5.7.3.2' ],
+        serialNumber: 'D56E246C94ED63ABB146EFC196B64FB0',
+        raw: Buffer(1510) [Uint8Array] [
+           48, 130,   5, 226,  48, 130,  3, 202, 160,   3,   2,   1,
+            2,   2,  17,   0, 213, 110, 36, 108, 148, 237,  99, 171,
+          177,  70, 239, 193, 150, 182, 79, 176,  48,  13,   6,   9,
+           42, 134,  72, 134, 247,  13,  1,   1,  12,   5,   0,  48,
+          129, 136,  49,  11,  48,   9,  6,   3,  85,   4,   6,  19,
+            2,  85,  83,  49,  19,  48, 17,   6,   3,  85,   4,   8,
+           19,  10,  78, 101, 119,  32, 74, 101, 114, 115, 101, 121,
+           49,  20,  48,  18,   6,   3, 85,   4,   7,  19,  11,  74,
+          101, 114, 115, 101,
+          ... 1410 more items
+        ],
+        asn1Curve: undefined,
+        nistCurve: undefined,
+        issuerCertificate: {
+          subject: [Object: null prototype] {
+            C: 'US',
+            ST: 'New Jersey',
+            L: 'Jersey City',
+            O: 'The USERTRUST Network',
+            CN: 'USERTrust RSA Certification Authority'
+          },
+          issuer: [Object: null prototype] {
+            C: 'GB',
+            ST: 'Greater Manchester',
+            L: 'Salford',
+            O: 'Comodo CA Limited',
+            CN: 'AAA Certificate Services'
+          },
+          subjectaltname: undefined,
+          infoAccess: [Object: null prototype] { 'OCSP - URI': [Array] },
+          ca: true,
+          modulus: '80126517360EC3DB08B3D0AC570D76EDCD27D34CAD508361E2AA204D092D6409DCCE899FCC3DA9ECF6CFC1DCF1D3B1D67B3
+728112B47DA39C6BC3A19B45FA6BD7D9DA36342B676F2A93B2B91F8E26FD0EC162090093EE2E874C918B491D46264DB7FA306F188186A90223CBCFE
+13F087147BF6E41F8ED4E451C61167460851CB8614543FBC33FE7E6C9CFF169D18BD518E35A6A766C87267DB2166B1D49B7803C0503AE8CCF0DCBC9
+E4CFEAF0596351F575AB7FFCEF93DB72CB6F654DDC8E7123A4DAE4C8AB75C9AB4B7203DCA7F2234AE7E3B68660144E7014E46539B3360F794BE5337
+907343F332C353EFDBAAFE744E69C76B8C6093DEC4C70CDFE132AECC933B517895678BEE3D56FE0CD0690F1B0FF325266B336DF76E47FA7343E57E0
+EA566B1297C3284635589C40DC19354301913ACD37D37A7EB5D3A6C355CDB41D712DAA9490BDFD8808A0993628EB566CF2588CD84B8B13FA4390FD9
+029EEB124C957CF36B05A95E1683CCB867E2E8139DCC5B82D34CB3ED5BFFDEE573AC233B2D00BF3555740949D849581A7F9236E651920EF3267D1C4
+D17BCC9EC4326D0BF415F40A94444F499E757879E501F5754A83EFD74632FB1506509E658422E431A4CB4F0254759FA041E93D426464A5081B2DEBE
+78B7FC6715E1C957841E0F63D6E962BAD65F552EEA5CC62808042539B80E2BA9F24C971C073F0D52F5EDEF2F820F',
+          exponent: '0x10001',
+          pubkey: Buffer(550) [Uint8Array] [
+             48, 130,   2,  34,  48,  13,   6,   9,  42, 134,  72, 134,
+            247,  13,   1,   1,   1,   5,   0,   3, 130,   2,  15,   0,
+             48, 130,   2,  10,   2, 130,   2,   1,   0, 128,  18, 101,
+             23,  54,  14, 195, 219,   8, 179, 208, 172,  87,  13, 118,
+            237, 205,  39, 211,  76, 173,  80, 131,  97, 226, 170,  32,
+             77,   9,  45, 100,   9, 220, 206, 137, 159, 204,  61, 169,
+            236, 246, 207, 193, 220, 241, 211, 177, 214, 123,  55,  40,
+             17,  43,  71, 218,  57, 198, 188,  58,  25, 180,  95, 166,
+            189, 125, 157, 163,
+            ... 450 more items
+          ],
+          bits: 4096,
+          valid_from: 'Mar 12 00:00:00 2019 GMT',
+          valid_to: 'Dec 31 23:59:59 2028 GMT',
+          fingerprint: 'D8:9E:3B:D4:3D:5D:90:9B:47:A1:89:77:AA:9D:5C:E3:6C:EE:18:4C',
+          fingerprint256: '68:B9:C7:61:21:9A:5B:1F:01:31:78:44:74:66:5D:B6:1B:BD:B1:09:E0:0F:05:CA:9F:74:24:4E:E5:F5:F5
+:2B',
+          fingerprint512: '4C:F3:05:B9:5F:94:C7:A9:50:4C:53:C7:F2:DC:80:68:E6:47:A3:26:D9:59:76:B7:F4:D8:04:33:B2:28:45
+:06:FC:5E:3B:B9:A8:0A:4E:9A:98:89:54:0B:BF:92:90:8D:D3:9E:E4:EB:25:F2:56:6F:E9:AB:37:B4:DC:9A:7C:09',
+          ext_key_usage: undefined,
+          serialNumber: '3972443AF922B751D7D36C10DD313595',
+          raw: Buffer(1413) [Uint8Array] [
+             48, 130,   5, 129,  48, 130,   4, 105, 160,   3,   2,   1,
+              2,   2,  16,  57, 114,  68,  58, 249,  34, 183,  81, 215,
+            211, 108,  16, 221,  49,  53, 149,  48,  13,   6,   9,  42,
+            134,  72, 134, 247,  13,   1,   1,  12,   5,   0,  48, 123,
+             49,  11,  48,   9,   6,   3,  85,   4,   6,  19,   2,  71,
+             66,  49,  27,  48,  25,   6,   3,  85,   4,   8,  12,  18,
+             71, 114, 101,  97, 116, 101, 114,  32,  77,  97, 110,  99,
+            104, 101, 115, 116, 101, 114,  49,  16,  48,  14,   6,   3,
+             85,   4,   7,  12,
+            ... 1313 more items
+          ],
+          asn1Curve: undefined,
+          nistCurve: undefined,
+          issuerCertificate: <ref *1> {
+            subject: [Object: null prototype],
+            issuer: [Object: null prototype],
+            subjectaltname: undefined,
+            infoAccess: undefined,
+            ca: true,
+            modulus: 'BE409DF46EE1EA76871C4D45448EBE46C883069DC12AFE181F8EE402FAF3AB5D508A16310B9A06D0C57022CD492D5463C
+CB66E68460B53EACB4C24C0BC724EEAF115AEF4549A120AC37AB23360E2DA8955F32258F3DEDCCFEF8386A28C944F9F68F29890468427C776BFE3CC
+352C8B5E07646582C048B0A891F9619F762050A891C766B5EB78620356F08A1A13EA31A31EA099FD38F6F62732586F07F56BB8FB142BAFB7AACCD66
+35F738CDA0599A838A8CB17783651ACE99EF4783A8DCF0FD942E2980CAB2F9F0E01DEEF9F9949F12DDFAC744D1B98B547C5E529D1F99018C7629CBE
+83C7267B3E8A25C7C0DD9DE6356810209D8FD8DED2C3849C0D5EE82FC9',
+            exponent: '0x10001',
+            pubkey: [Buffer [Uint8Array]],
+            bits: 2048,
+            valid_from: 'Jan  1 00:00:00 2004 GMT',
+            valid_to: 'Dec 31 23:59:59 2028 GMT',
+            fingerprint: 'D1:EB:23:A4:6D:17:D6:8F:D9:25:64:C2:F1:F1:60:17:64:D8:E3:49',
+            fingerprint256: 'D7:A7:A0:FB:5D:7E:27:31:D7:71:E9:48:4E:BC:DE:F7:1D:5F:0C:3E:0A:29:48:78:2B:C8:3E:E0:EA:69:
+9E:F4',
+            fingerprint512: '1C:79:41:CD:6E:6B:4E:A1:C9:6F:3F:1C:06:F1:A4:01:6E:C3:CF:4D:DE:73:A4:25:F2:FE:5C:AF:F0:BE:
+DF:EA:93:82:4B:EE:D3:84:36:3C:8B:4F:45:88:27:EF:00:FD:4A:B6:C4:E0:72:A6:F1:E6:90:98:B0:42:4B:97:B2:A7',
+            ext_key_usage: undefined,
+            serialNumber: '01',
+            raw: [Buffer [Uint8Array]],
+            asn1Curve: undefined,
+            nistCurve: undefined,
+            issuerCertificate: [Circular *1]
+          }
+        }
+      }
+    }
+  }
+}
+
+Node.js v24.16.0
