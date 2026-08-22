@@ -34,21 +34,23 @@ npx next build
 
 ## 致谢与参考项目
 
-热榜汇的设计、数据接入与实现调研受益于以下开源项目，在此向所有作者和贡献者表示感谢。
-
-相关网站：[今日热榜官网](https://tophub.today/)
+热榜汇的设计、数据接入与实现调研受益于以下项目和网站，在此向所有作者和贡献者表示感谢。
 
 1. **[imsyy/DailyHotApi](https://github.com/imsyy/DailyHotApi)**  
-   今日热榜 API，一个聚合热门数据的 API 接口，支持 RSS 模式及 Vercel 部署。配套前端：[imsyy/DailyHot](https://github.com/imsyy/DailyHot)，在线页面：[今日热榜](https://hot.imsyy.top/#/)。
+   今日热榜 API，一个聚合热门数据的 API 接口，支持 RSS 模式及 Vercel 部署。<br>
+   配套前端：[imsyy/DailyHot](https://github.com/imsyy/DailyHot)<br>
+   在线页面：[今日热榜](https://hot.imsyy.top/#/)
 
 2. **[liubaicai/DailyHot](https://github.com/liubaicai/DailyHot)**  
    适合 AI 订阅的新闻聚合站。其 [DailyHot API](https://daily-hot-for-ai.vercel.app/) 聚合 50+ 平台热榜数据，支持 JSON / RSS 输出，便于 AI Agent 集成。
 
 3. **[ourongxing/newsnow](https://github.com/ourongxing/newsnow)**  
-   Elegant reading of real-time and hottest news。在线页面：[NewsNow｜最热](https://newsnow.busiyi.world/c/hottest)。
+   Elegant reading of real-time and hottest news。<br>
+   在线页面：[NewsNow｜最热](https://newsnow.busiyi.world/c/hottest)
 
 4. **[HelTi/daily-hot-api](https://github.com/HelTi/daily-hot-api)**  
-   基于 NestJS 的每日热点聚合 API 服务，支持多平台热榜、手动部署、PM2、Docker、数据存储、历史热点查询、RSS 订阅及 AI 热点分析报告。在线页面：[每日热点](https://ttkit.cn/daily-hot)。
+   基于 NestJS 的每日热点聚合 API 服务，支持多平台热榜、手动部署、PM2、Docker、数据存储、历史热点查询、RSS 订阅及 AI 热点分析报告。<br>
+   在线页面：[每日热点](https://ttkit.cn/daily-hot)
 
 5. **[chenyiyao/TrendRadar](https://github.com/chenyiyao/TrendRadar)**  
    AI 驱动的舆情与趋势监控工具，聚合多平台热点和 RSS，支持关键词筛选、AI 翻译与分析、MCP，以及微信、飞书、钉钉、Telegram、邮件、ntfy、Bark、Slack 等推送渠道。
@@ -57,23 +59,25 @@ npx next build
    基于 Go 实现的多新闻平台热搜 API，实时抓取各大新闻网站的热搜内容，并提供统一的数据接口。
 
 7. **[tophubs/TopList](https://github.com/tophubs/TopList)**  
-   使用 Go 编写的今日热榜聚合项目，通过多协程异步抓取热门头条；原预览地址：[mo.fish](https://mo.fish)。
+   使用 Go 编写的今日热榜聚合项目，通过多协程异步抓取热门头条。<br>
+   在线页面：[mo.fish](https://mo.fish)
 
 8. **[huqi-pr/trending-in-one](https://github.com/huqi-pr/trending-in-one)**  
    归档今日头条、知乎与微博热搜，自 2020-11-29 起每小时抓取并按天保存。
 
 9. **justjavac 热榜归档项目**  
-   以下三个项目仍在维护，均采用每小时抓取、按天归档的方式保存历史榜单：
-
    - [justjavac/zhihu-trending-top-search](https://github.com/justjavac/zhihu-trending-top-search)：知乎热搜榜，自 2020-11-24 起记录。
    - [justjavac/weibo-trending-hot-search](https://github.com/justjavac/weibo-trending-hot-search)：微博热搜榜，自 2020-11-24 起记录。
    - [justjavac/zhihu-trending-hot-questions](https://github.com/justjavac/zhihu-trending-hot-questions)：知乎热门话题，自 2020-11-24 起记录。
+   以上三个项目均采用每小时抓取、按天归档的方式保存历史榜单：
 
 10. **[tmwgsicp/ForgeRSS](https://github.com/tmwgsicp/ForgeRSS)**  
     将任意网站转换为 RSS 订阅源，支持多引擎抓取与反爬处理，并覆盖抖音、快手、小红书、B 站、知乎、小宇宙、知识星球等平台。
 
 11. **[ShellMonster/DailyHotApi-Go](https://github.com/ShellMonster/DailyHotApi-Go)**  
     基于 `imsyy/DailyHotApi` 的 Go 语言高性能重构版本，为 60+ 新闻、社交与科技热榜提供统一 API。
+
+12. **[今日热榜官网](https://tophub.today/)**
 
 ## 说明
 
