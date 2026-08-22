@@ -60,7 +60,7 @@ npx next build
 8. **[huqi-pr/trending-in-one](https://github.com/huqi-pr/trending-in-one)**  
    归档今日头条、知乎与微博热搜，自 2020-11-29 起每小时抓取并按天保存。
 
-9. **justjavac 热榜归档项目**  
+9. justjavac 热榜归档项目  
    以下三个项目仍在维护，均采用每小时抓取、按天归档的方式保存历史榜单：
 
    - [justjavac/zhihu-trending-top-search](https://github.com/justjavac/zhihu-trending-top-search)：知乎热搜榜，自 2020-11-24 起记录。
