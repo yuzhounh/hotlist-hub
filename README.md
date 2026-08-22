@@ -69,6 +69,7 @@ npx next build
    - [justjavac/zhihu-trending-top-search](https://github.com/justjavac/zhihu-trending-top-search)：知乎热搜榜，自 2020-11-24 起记录。
    - [justjavac/weibo-trending-hot-search](https://github.com/justjavac/weibo-trending-hot-search)：微博热搜榜，自 2020-11-24 起记录。
    - [justjavac/zhihu-trending-hot-questions](https://github.com/justjavac/zhihu-trending-hot-questions)：知乎热门话题，自 2020-11-24 起记录。
+
    以上三个项目均采用每小时抓取、按天归档的方式保存历史榜单：
 
 10. **[tmwgsicp/ForgeRSS](https://github.com/tmwgsicp/ForgeRSS)**  
