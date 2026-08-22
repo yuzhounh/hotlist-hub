@@ -36,6 +36,8 @@ npx next build
 
 热榜汇的设计、数据接入与实现调研受益于以下开源项目，在此向所有作者和贡献者表示感谢。
 
+相关网站：[今日热榜官网](https://tophub.today/)
+
 1. **[imsyy/DailyHotApi](https://github.com/imsyy/DailyHotApi)**  
    今日热榜 API，一个聚合热门数据的 API 接口，支持 RSS 模式及 Vercel 部署。配套前端：[imsyy/DailyHot](https://github.com/imsyy/DailyHot)，在线页面：[今日热榜](https://hot.imsyy.top/#/)。
 
@@ -55,7 +57,7 @@ npx next build
    基于 Go 实现的多新闻平台热搜 API，实时抓取各大新闻网站的热搜内容，并提供统一的数据接口。
 
 7. **[tophubs/TopList](https://github.com/tophubs/TopList)**  
-   使用 Go 编写的今日热榜聚合项目，通过多协程异步抓取热门头条；原预览地址：[mo.fish](https://mo.fish)。今日热榜官网：[https://tophub.today/](https://tophub.today/)。
+   使用 Go 编写的今日热榜聚合项目，通过多协程异步抓取热门头条；原预览地址：[mo.fish](https://mo.fish)。
 
 8. **[huqi-pr/trending-in-one](https://github.com/huqi-pr/trending-in-one)**  
    归档今日头条、知乎与微博热搜，自 2020-11-29 起每小时抓取并按天保存。
