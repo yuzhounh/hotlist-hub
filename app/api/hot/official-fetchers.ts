@@ -50,7 +50,7 @@ async function fetchTiebaHot(): Promise<HotResult> {
   );
   const items = (data.data?.bang_topic?.topic_list ?? []).flatMap((entry) => entry.topic_name && entry.topic_id ? [{
     id: entry.topic_id,
-    title: entry.topic_name,
+    title: entry.topic_name.replace(/,/g, '，'),
     url: `https://tieba.baidu.com/hottopic/browse/hottopic?topic_id=${entry.topic_id}`,
     extra: entry.discuss_num ? { info: String(entry.discuss_num) } : undefined,
   }] : []);
@@ -89,13 +89,14 @@ async function fetchBaiduHot(): Promise<HotResult> {
     return [];
   };
   const items = (data.data?.cards ?? []).flatMap((card) => flatten(card.content)).flatMap((entry) => {
-    const title = entry.word || entry.desc;
-    if (!title) return [];
+    const rawTitle = entry.word || entry.desc;
+    if (!rawTitle) return [];
+    const title = rawTitle.replace(/\s+/g, '，');
     const hotScore = Number(entry.hotScore);
     return [{
       id: title,
       title,
-      url: entry.rawUrl || `https://www.baidu.com/s?wd=${encodeURIComponent(title)}`,
+      url: entry.rawUrl || `https://www.baidu.com/s?wd=${encodeURIComponent(rawTitle)}`,
       extra: Number.isFinite(hotScore) && hotScore > 0
         ? { info: hotScore.toLocaleString('zh-CN') }
         : undefined,
