@@ -1,6 +1,7 @@
 export type UnifiedItem = {
   id: string | number;
   title: string;
+  byline?: string;
   url: string;
   mobileUrl?: string;
   extra?: { info?: string | false; diff?: number };
@@ -81,13 +82,27 @@ export async function fetchJson<T>(url: string, referer?: string, init?: Request
   return response.json() as Promise<T>;
 }
 
+export function normalizePublicHttpUrl(value?: string) {
+  if (!value || /javascript\s*:/i.test(value) || /[\u0000-\u001f]/.test(value)) return null;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+    if (parsed.username || parsed.password) return null;
+    return parsed.href;
+  } catch {
+    return null;
+  }
+}
+
 export function dedupeItems(items: UnifiedItem[]) {
   const seen = new Set<string>();
-  return items.filter((item) => {
-    const key = item.url || String(item.id || '') || item.title.trim();
-    if (!key || seen.has(key)) return false;
+  return items.flatMap((item) => {
+    const url = normalizePublicHttpUrl(item.url) ?? normalizePublicHttpUrl(item.mobileUrl);
+    if (!item.title?.trim() || !url || seen.has(url)) return [];
+    const mobileUrl = normalizePublicHttpUrl(item.mobileUrl) ?? undefined;
+    const key = url;
     seen.add(key);
-    return true;
+    return [{ ...item, url, mobileUrl }];
   });
 }
 

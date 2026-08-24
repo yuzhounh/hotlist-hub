@@ -4,7 +4,7 @@
 
 <h1 align="center">热榜汇</h1>
 
-<p align="center">全网热榜一屏尽览，此刻正在发生。</p>
+<p align="center">热榜一屏尽览，此刻正在发生。</p>
 
 <p align="center">
   <a href="https://hotlist-hub.vercel.app">在线访问</a>
@@ -24,6 +24,12 @@ npm run dev
 ```
 
 Firebase 登录为可选功能。需要启用时，请复制 `.env.example` 中的变量并填写本地 `.env.local`。
+
+登录后，收藏、收藏页手动排序、卡片宽度、展开状态、主题和排序模式会同步到 Firestore 的 `userPreferences/{uid}` 文档。首次启用时需在对应 Firebase 项目创建 Firestore 数据库，并部署仓库中的访问规则：
+
+```bash
+firebase deploy --only firestore:rules
+```
 
 ## 构建
 

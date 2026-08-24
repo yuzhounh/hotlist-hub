@@ -3,45 +3,67 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { categories, categoryCounts, platformFetchLabel, sourceCatalog, type PlatformDefinition } from './source-catalog';
 import { HeaderActions } from './components/header-actions';
+import { THEME_KEY } from './components/theme-toggle';
 import { useAuth } from './components/auth-provider';
+import { formatItemMetric } from './metric-format';
+import { comparePlatformName, orderFavoritePlatforms, reorderSources } from './platform-sort';
+import {
+  readCloudPreferences,
+  writeCloudPreferences,
+  type ThemePreference,
+  type UserPreferences,
+} from './lib/user-preferences';
 
-type HotItem = { title: string; url?: string; heat?: string; rising?: boolean };
+type HotItem = { title: string; byline?: string; url?: string; heat?: string; rising?: boolean };
+
+function HotItemLabel({ item }: { item: HotItem }) {
+  return <>
+    <span className="item-primary-text">{item.title}</span>
+    {item.byline && <span className="item-byline"><span className="item-byline-separator" aria-hidden="true"> · </span>{item.byline}</span>}
+  </>;
+}
+
 type Platform = PlatformDefinition & {
   updated: string;
   status: 'idle' | 'loading' | 'success' | 'error';
   items: HotItem[];
+  consecutiveFailures: number;
 };
 
-const INITIALIZED_KEY = 'rebanghui-initialized';
-const CACHE_KEY = 'rebanghui-platform-cache';
+const CACHE_KEY = 'rebanghui-platform-cache-v3';
 const FAVORITES_KEY = 'rebanghui-favorites';
 const CARD_PREFS_KEY = 'rebanghui-card-prefs';
+const CARD_ORDER_VERSION_KEY = 'rebanghui-card-order-version';
+const CARD_ORDER_VERSION = 'favorites-only-v1';
 const SORT_MODE_KEY = 'rebanghui-sort-mode';
+const NAVIGATION_STATE_KEY = 'rebanghui-navigation-state-v1';
 const FAVORITES_CATEGORY = '收藏';
 
 type CardPrefsData = {
   wide: string[];
   expanded: string[];
-  clicks: Record<string, number>;
   order: Record<string, string[]>;
 };
 
 const EMPTY_CARD_PREFS: CardPrefsData = {
   wide: [],
   expanded: [],
-  clicks: {},
   order: {},
 };
 
 function readCardPrefs(): CardPrefsData {
   try {
+    const shouldResetOrder = localStorage.getItem(CARD_ORDER_VERSION_KEY) !== CARD_ORDER_VERSION;
     const raw = localStorage.getItem(CARD_PREFS_KEY);
-    if (!raw) return { ...EMPTY_CARD_PREFS };
+    if (!raw) {
+      if (shouldResetOrder) localStorage.setItem(CARD_ORDER_VERSION_KEY, CARD_ORDER_VERSION);
+      return { ...EMPTY_CARD_PREFS };
+    }
     const parsed = JSON.parse(raw) as Partial<CardPrefsData>;
     const valid = new Set(sourceCatalog.map((platform) => platform.source));
     const wide = Array.isArray(parsed.wide) ? parsed.wide.filter((source) => valid.has(source)) : [];
     const expanded = Array.isArray(parsed.expanded) ? parsed.expanded.filter((source) => valid.has(source)) : [];
-    const order = parsed.order && typeof parsed.order === 'object'
+    const order = !shouldResetOrder && parsed.order && typeof parsed.order === 'object'
       ? Object.fromEntries(
         Object.entries(parsed.order).map(([key, value]) => [
           key,
@@ -49,10 +71,8 @@ function readCardPrefs(): CardPrefsData {
         ]),
       )
       : {};
-    const clicks = parsed.clicks && typeof parsed.clicks === 'object'
-      ? Object.fromEntries(Object.entries(parsed.clicks).filter(([source]) => valid.has(source)))
-      : {};
-    return { wide, expanded, clicks, order };
+    if (shouldResetOrder) localStorage.setItem(CARD_ORDER_VERSION_KEY, CARD_ORDER_VERSION);
+    return { wide, expanded, order };
   } catch {
     return { ...EMPTY_CARD_PREFS };
   }
@@ -60,6 +80,25 @@ function readCardPrefs(): CardPrefsData {
 
 function writeCardPrefs(data: CardPrefsData) {
   localStorage.setItem(CARD_PREFS_KEY, JSON.stringify(data));
+}
+
+function readNavigationState() {
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(NAVIGATION_STATE_KEY) ?? '') as {
+      category?: string;
+      page?: number;
+    };
+    const validCategories = new Set([FAVORITES_CATEGORY, '全部', ...categories]);
+    if (!parsed.category || !validCategories.has(parsed.category)) return null;
+    const page = Number.isInteger(parsed.page) && Number(parsed.page) > 0 ? Number(parsed.page) : 1;
+    return { category: parsed.category, page };
+  } catch {
+    return null;
+  }
+}
+
+function writeNavigationState(category: string, page: number) {
+  sessionStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify({ category, page }));
 }
 
 function readFavoriteSources(): Set<string> {
@@ -79,7 +118,18 @@ function writeFavoriteSources(sources: Set<string>) {
   localStorage.setItem(FAVORITES_KEY, JSON.stringify([...sources]));
 }
 
-type PlatformCacheEntry = Pick<Platform, 'source' | 'updated' | 'status' | 'items'>;
+function readThemePreference(): ThemePreference {
+  const stored = localStorage.getItem(THEME_KEY);
+  if (stored === 'dark' || stored === 'light') return stored;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyThemePreference(theme: ThemePreference) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem(THEME_KEY, theme);
+}
+
+type PlatformCacheEntry = Pick<Platform, 'source' | 'updated' | 'status' | 'items' | 'consecutiveFailures'>;
 
 function readPlatformCache(): PlatformCacheEntry[] {
   try {
@@ -97,14 +147,20 @@ function mergeCacheIntoPlatforms(cached: PlatformCacheEntry[]): Platform[] {
   return platforms.map((platform) => {
     const hit = map.get(platform.source);
     if (!hit || hit.status === 'idle' || hit.status === 'loading') return platform;
-    return { ...platform, updated: hit.updated, status: hit.status, items: hit.items };
+    return {
+      ...platform,
+      updated: hit.updated,
+      status: hit.status,
+      items: hit.items,
+      consecutiveFailures: hit.consecutiveFailures ?? 0,
+    };
   });
 }
 
 function writePlatformCache(list: Platform[]) {
   const payload = list
     .filter((platform) => platform.status === 'success' || platform.status === 'error')
-    .map(({ source, updated, status, items }) => ({ source, updated, status, items }));
+    .map(({ source, updated, status, items, consecutiveFailures }) => ({ source, updated, status, items, consecutiveFailures }));
   sessionStorage.setItem(CACHE_KEY, JSON.stringify(payload));
 }
 
@@ -113,6 +169,7 @@ type SourceResponse = {
   items?: Array<{
     id: string | number;
     title: string;
+    byline?: string;
     url: string;
     mobileUrl?: string;
     extra?: { info?: string | false; diff?: number };
@@ -124,10 +181,19 @@ const platforms: Platform[] = sourceCatalog.map((platform) => ({
   updated: '等待更新',
   status: 'idle',
   items: [],
+  consecutiveFailures: 0,
 }));
 
 const DEFAULT_ITEM_LIMIT = 10;
 const EXPANDED_ITEM_LIMIT = 30;
+const PAGE_SIZE = 9;
+const PAGE_MAX_CONCURRENCY = 12;
+const FETCH_RETRY_DELAYS_MS = [1500];
+const NEWSNOW_MAX_CONCURRENCY = 2;
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
 
 function CardWideIcon({ collapsed }: { collapsed: boolean }) {
   return (
@@ -188,22 +254,25 @@ function CardFavoriteIcon({ filled }: { filled: boolean }) {
   );
 }
 
-function sortSourcesByClicks(
-  sources: string[],
-  clicks: Record<string, number>,
-) {
-  const nameBySource = new Map(sourceCatalog.map((platform) => [platform.source, platform.name]));
-  return [...sources].sort((a, b) => {
-    const clickDiff = (clicks[b] ?? 0) - (clicks[a] ?? 0);
-    if (clickDiff !== 0) return clickDiff;
-    return comparePlatformName(nameBySource.get(a) ?? a, nameBySource.get(b) ?? b);
-  });
+function mergeUnique(primary: string[], secondary: string[]) {
+  return [...new Set([...primary, ...secondary])];
 }
 
-function getCategorySources(category: string, favoriteSources: Set<string>) {
-  if (category === FAVORITES_CATEGORY) return [...favoriteSources];
-  if (category === '全部') return sourceCatalog.map((platform) => platform.source);
-  return sourceCatalog.filter((platform) => platform.category === category).map((platform) => platform.source);
+function mergeCardPreferences(local: CardPrefsData, remote?: Partial<CardPrefsData>): CardPrefsData {
+  const valid = new Set(sourceCatalog.map((platform) => platform.source));
+  const clean = (items: unknown) => Array.isArray(items)
+    ? items.filter((source): source is string => typeof source === 'string' && valid.has(source))
+    : [];
+  const favoriteOrder = mergeUnique(
+    clean(remote?.order?.[FAVORITES_CATEGORY]),
+    clean(local.order[FAVORITES_CATEGORY]),
+  );
+  const order = favoriteOrder.length ? { [FAVORITES_CATEGORY]: favoriteOrder } : {};
+  return {
+    wide: mergeUnique(clean(remote?.wide), local.wide),
+    expanded: mergeUnique(clean(remote?.expanded), local.expanded),
+    order,
+  };
 }
 
 function filterPlatforms(
@@ -211,7 +280,6 @@ function filterPlatforms(
   category: string,
   query: string,
   favoriteSources: Set<string>,
-  clicks: Record<string, number>,
   categoryOrder: string[],
 ) {
   const keyword = query.trim().toLowerCase();
@@ -224,65 +292,25 @@ function filterPlatforms(
     .map((platform) => ({
       ...platform,
       items: keyword
-        ? platform.items.filter((item) => `${platform.name} ${item.title}`.toLowerCase().includes(keyword))
+        ? platform.items.filter((item) => `${platform.name} ${item.title} ${item.byline ?? ''}`.toLowerCase().includes(keyword))
         : platform.items,
     }))
     .filter((platform) => !keyword || platform.items.length > 0);
 
-  const sourceSet = new Set(filtered.map((platform) => platform.source));
-  const manualOrder = categoryOrder.filter((source) => sourceSet.has(source));
-  const manualIndex = new Map(manualOrder.map((source, index) => [source, index]));
-  const unorderedSources = filtered
-    .filter((platform) => !manualIndex.has(platform.source))
-    .sort((a, b) => {
-      const clickDiff = (clicks[b.source] ?? 0) - (clicks[a.source] ?? 0);
-      if (clickDiff !== 0) return clickDiff;
-      return comparePlatformName(a.name, b.name);
-    })
-    .map((platform) => platform.source);
-  const sortIndex = new Map<string, number>([
-    ...manualOrder.map((source, index) => [source, index] as const),
-    ...unorderedSources.map((source, index) => [source, manualOrder.length + index] as const),
-  ]);
+  if (category !== FAVORITES_CATEGORY) return filtered.sort((a, b) => comparePlatformName(a.name, b.name));
 
-  return filtered.sort((a, b) => {
-    const orderDiff = (sortIndex.get(a.source) ?? Number.MAX_SAFE_INTEGER) - (sortIndex.get(b.source) ?? Number.MAX_SAFE_INTEGER);
-    if (orderDiff !== 0) return orderDiff;
-    const clickDiff = (clicks[b.source] ?? 0) - (clicks[a.source] ?? 0);
-    if (clickDiff !== 0) return clickDiff;
-    return comparePlatformName(a.name, b.name);
-  });
-}
-
-function reorderCategorySources(sources: string[], dragged: string, target: string) {
-  if (dragged === target) return sources;
-  const next = sources.filter((source) => source !== dragged);
-  const targetIndex = next.indexOf(target);
-  if (targetIndex === -1) return sources;
-  next.splice(targetIndex, 0, dragged);
-  return next;
+  return orderFavoritePlatforms(filtered, favoriteSources, categoryOrder);
 }
 
 function formatUpdated(value?: number | string) {
-  if (!value) return '刚刚更新';
+  if (!value) return '刚刚抓取';
   const time = new Date(value).getTime();
-  if (!Number.isFinite(time)) return '刚刚更新';
+  if (!Number.isFinite(time)) return '刚刚抓取';
   const minutes = Math.max(0, Math.floor((Date.now() - time) / 60000));
-  if (minutes < 1) return '刚刚更新';
-  if (minutes < 60) return `${minutes} 分钟前`;
-  if (minutes < 1440) return `${Math.floor(minutes / 60)} 小时前`;
-  return `${Math.floor(minutes / 1440)} 天前`;
-}
-
-function startsWithChinese(name: string) {
-  return /^[\u4e00-\u9fff]/.test(name.trim());
-}
-
-function comparePlatformName(a: string, b: string) {
-  const aChinese = startsWithChinese(a);
-  const bChinese = startsWithChinese(b);
-  if (aChinese !== bChinese) return aChinese ? -1 : 1;
-  return a.localeCompare(b, aChinese ? 'zh-CN' : 'en', { sensitivity: 'base', numeric: true });
+  if (minutes < 1) return '刚刚抓取';
+  if (minutes < 60) return `${minutes} 分钟前抓取`;
+  if (minutes < 1440) return `${Math.floor(minutes / 60)} 小时前抓取`;
+  return `${Math.floor(minutes / 1440)} 天前抓取`;
 }
 
 async function fetchPlatform(platform: Platform): Promise<Platform> {
@@ -290,20 +318,63 @@ async function fetchPlatform(platform: Platform): Promise<Platform> {
     const response = await fetch(`/api/hot?source=${encodeURIComponent(platform.source)}`, { cache: 'no-store' });
     if (!response.ok) throw new Error('Source unavailable');
     const payload = await response.json() as SourceResponse;
+    const safeUrl = (value?: string) => {
+      if (!value || /javascript\s*:/i.test(value) || /[\u0000-\u001f]/.test(value)) return undefined;
+      try {
+        const parsed = new URL(value);
+        return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.href : undefined;
+      } catch {
+        return undefined;
+      }
+    };
     const items = (payload.items ?? [])
-      .filter((item) => item.title && item.url)
+      .map((item) => ({ ...item, resolvedUrl: safeUrl(item.mobileUrl || item.url) }))
+      .filter((item) => item.title && item.resolvedUrl)
       .slice(0, 30)
       .map((item) => ({
         title: item.title,
-        url: item.mobileUrl || item.url,
-        heat: typeof item.extra?.info === 'string' ? item.extra.info : undefined,
+        byline: item.byline,
+        url: item.resolvedUrl,
+        heat: formatItemMetric(platform.source, item.extra?.info),
         rising: typeof item.extra?.diff === 'number' && item.extra.diff > 0,
       }));
     if (!items.length) throw new Error('Empty source');
-    return { ...platform, items, updated: formatUpdated(payload.updatedTime), status: 'success' };
+    return { ...platform, items, updated: formatUpdated(payload.updatedTime), status: 'success', consecutiveFailures: 0 };
   } catch {
-    return { ...platform, items: [], updated: '获取失败', status: 'error' };
+    return {
+      ...platform,
+      updated: platform.items.length ? platform.updated : '获取失败',
+      status: 'error',
+      consecutiveFailures: platform.consecutiveFailures + 1,
+    };
   }
+}
+
+async function fetchPlatformWithRetry(platform: Platform): Promise<Platform> {
+  let result = await fetchPlatform(platform);
+  for (const delay of FETCH_RETRY_DELAYS_MS) {
+    if (result.status === 'success') return result;
+    await sleep(delay);
+    result = await fetchPlatform(platform);
+  }
+  return result;
+}
+
+async function runPlatformFetchPool(
+  targets: Platform[],
+  concurrency: number,
+  onResult: (result: Platform) => void,
+) {
+  if (!targets.length) return;
+  const workerCount = Math.min(concurrency, targets.length);
+  let cursor = 0;
+  const workers = Array.from({ length: workerCount }, async () => {
+    while (cursor < targets.length) {
+      const platform = targets[cursor++];
+      onResult(await fetchPlatformWithRetry(platform));
+    }
+  });
+  await Promise.all(workers);
 }
 
 export default function Home() {
@@ -319,13 +390,19 @@ export default function Home() {
   const [activeTip, setActiveTip] = useState<string | null>(null);
   const [cardPrefs, setCardPrefs] = useState<CardPrefsData>(() => ({ ...EMPTY_CARD_PREFS }));
   const [sortModeEnabled, setSortModeEnabled] = useState(false);
+  const [theme, setTheme] = useState<ThemePreference>('light');
+  const [themeReady, setThemeReady] = useState(false);
+  const [preferenceSyncStatus, setPreferenceSyncStatus] = useState<'local' | 'syncing' | 'synced' | 'error'>('local');
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [draggingSource, setDraggingSource] = useState<string | null>(null);
   const suppressedTip = useRef<string | null>(null);
   const dragSourceRef = useRef<string | null>(null);
   const platformGridRef = useRef<HTMLElement | null>(null);
   const shouldScrollAfterPageChange = useRef(false);
-  const resolvedCategoryUserId = useRef<string | null | undefined>(undefined);
+  const sessionLoadStarted = useRef(false);
+  const sessionLoadComplete = useRef(false);
+  const cloudLoadedUserId = useRef<string | null>(null);
+  const prevNavigation = useRef({ category: '全部', safePage: 1, query: '' });
 
   const wideSources = useMemo(() => new Set(cardPrefs.wide), [cardPrefs.wide]);
   const expandedSources = useMemo(() => new Set(cardPrefs.expanded), [cardPrefs.expanded]);
@@ -336,10 +413,9 @@ export default function Home() {
       category,
       query,
       favoriteSources,
-      cardPrefs.clicks,
       cardPrefs.order[category] ?? [],
     ),
-    [category, query, livePlatforms, favoriteSources, cardPrefs.clicks, cardPrefs.order],
+    [category, query, livePlatforms, favoriteSources, cardPrefs.order],
   );
 
   const categoryTabCount = useCallback((item: string) => (
@@ -350,7 +426,7 @@ export default function Home() {
         : categoryCounts[item]
   ), [favoriteSources.size]);
 
-  const pageSize = 12;
+  const pageSize = PAGE_SIZE;
   const pageCount = Math.max(1, Math.ceil(visiblePlatforms.length / pageSize));
   const safePage = Math.min(currentPage, pageCount);
   const pagedPlatforms = visiblePlatforms.slice((safePage - 1) * pageSize, safePage * pageSize);
@@ -361,11 +437,14 @@ export default function Home() {
     livePlatformsRef.current = livePlatforms;
   }, [livePlatforms]);
 
-  const loadPlatforms = useCallback(async (sources: string[], force = false, options?: { trackGlobalRefresh?: boolean }) => {
+  const loadPlatforms = useCallback(async (sources: string[], force = false, options?: { trackGlobalRefresh?: boolean; concurrency?: number }) => {
     const uniqueSources = [...new Set(sources)];
     if (!uniqueSources.length) return;
 
-    let targets = platforms.filter((platform) => uniqueSources.includes(platform.source));
+    const platformBySource = new Map(livePlatformsRef.current.map((platform) => [platform.source, platform]));
+    let targets = uniqueSources
+      .map((source) => platformBySource.get(source))
+      .filter((platform): platform is Platform => platform !== undefined);
     if (!force) {
       targets = targets.filter((platform) => {
         const current = livePlatformsRef.current.find((item) => item.source === platform.source);
@@ -382,20 +461,26 @@ export default function Home() {
         : platform
     )));
 
-    let cursor = 0;
-    const workers = Array.from({ length: Math.min(8, targets.length) }, async () => {
-      while (cursor < targets.length) {
-        const platform = targets[cursor++];
-        const result = await fetchPlatform(platform);
-        setLivePlatforms((current) => {
-          const next = current.map((item) => item.source === result.source ? result : item);
-          writePlatformCache(next);
-          return next;
-        });
-      }
-    });
+    const applyResult = (result: Platform) => {
+      setLivePlatforms((current) => {
+        const next = current.map((item) => item.source === result.source ? result : item);
+        writePlatformCache(next);
+        return next;
+      });
+    };
 
-    await Promise.all(workers);
+    const newsnowTargets = targets.filter((platform) => platform.provider === 'newsnow');
+    const otherTargets = targets.filter((platform) => platform.provider !== 'newsnow');
+    const baseConcurrency = options?.concurrency ?? 8;
+
+    await Promise.all([
+      runPlatformFetchPool(otherTargets, baseConcurrency, applyResult),
+      runPlatformFetchPool(
+        newsnowTargets,
+        Math.min(NEWSNOW_MAX_CONCURRENCY, newsnowTargets.length),
+        applyResult,
+      ),
+    ]);
     if (trackGlobalRefresh) setIsRefreshing(false);
   }, []);
 
@@ -429,25 +514,8 @@ export default function Home() {
     });
   }, [updateCardPrefs]);
 
-  const recordCardClick = useCallback((source: string) => {
-    updateCardPrefs((current) => {
-      const clicks = { ...current.clicks, [source]: (current.clicks[source] ?? 0) + 1 };
-      if (sortModeEnabled) {
-        return { ...current, clicks };
-      }
-      const categorySources = getCategorySources(category, favoriteSources);
-      return {
-        ...current,
-        clicks,
-        order: {
-          ...current.order,
-          [category]: sortSourcesByClicks(categorySources, clicks),
-        },
-      };
-    });
-  }, [category, favoriteSources, sortModeEnabled, updateCardPrefs]);
-
   const toggleSortMode = useCallback(() => {
+    if (category !== FAVORITES_CATEGORY) return;
     setSortModeEnabled((current) => {
       const next = !current;
       localStorage.setItem(SORT_MODE_KEY, next ? '1' : '0');
@@ -456,48 +524,123 @@ export default function Home() {
     dragSourceRef.current = null;
     setDraggingSource(null);
     setDropTarget(null);
-  }, []);
+  }, [category]);
 
-  const reorderPlatforms = useCallback((dragged: string, target: string) => {
-    updateCardPrefs((current) => {
-      const categoryKey = category;
-      const visibleSources = visiblePlatforms.map((platform) => platform.source);
-      const baseOrder = current.order[categoryKey]?.length
-        ? [
-          ...current.order[categoryKey].filter((source) => visibleSources.includes(source)),
-          ...visibleSources.filter((source) => !current.order[categoryKey].includes(source)),
-        ]
-        : [...visibleSources];
-      const nextOrder = reorderCategorySources(baseOrder, dragged, target);
-      return { ...current, order: { ...current.order, [categoryKey]: nextOrder } };
-    });
-  }, [category, updateCardPrefs, visiblePlatforms]);
-
-  const toggleFavorite = useCallback((source: string) => {
-    setFavoriteSources((current) => {
-      const next = new Set(current);
-      const adding = !next.has(source);
-      if (adding) next.add(source);
-      else next.delete(source);
-      writeFavoriteSources(next);
-
-      if (adding) {
-        const platform = livePlatformsRef.current.find((item) => item.source === source);
-        if (platform && (platform.status === 'idle' || platform.status === 'error')) {
-          void loadPlatforms([source], true, { trackGlobalRefresh: false });
-        }
-      }
-
+  const toggleTheme = useCallback(() => {
+    setTheme((current) => {
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyThemePreference(next);
       return next;
     });
-  }, [loadPlatforms]);
+  }, []);
+
+  const restoreCloudPreferences = useCallback(() => {
+    const uid = user?.uid;
+    if (!uid) return;
+    void (async () => {
+      setPreferenceSyncStatus('syncing');
+      try {
+        const remote = await readCloudPreferences(uid);
+        if (!remote) {
+          setPreferenceSyncStatus('synced');
+          return;
+        }
+        const valid = new Set(sourceCatalog.map((platform) => platform.source));
+        const favorites = new Set((remote.favorites ?? []).filter((source) => valid.has(source)));
+        const restoredCardPrefs = mergeCardPreferences(
+          { ...EMPTY_CARD_PREFS },
+          remote.version === 4 ? remote.cardPrefs : { ...remote.cardPrefs, order: {} },
+        );
+        const restoredTheme = remote.theme === 'dark' ? 'dark' : 'light';
+        setFavoriteSources(favorites);
+        writeFavoriteSources(favorites);
+        setCardPrefs(restoredCardPrefs);
+        writeCardPrefs(restoredCardPrefs);
+        const restoredSortMode = category === FAVORITES_CATEGORY && Boolean(remote.sortModeEnabled);
+        setSortModeEnabled(restoredSortMode);
+        localStorage.setItem(SORT_MODE_KEY, restoredSortMode ? '1' : '0');
+        setTheme(restoredTheme);
+        applyThemePreference(restoredTheme);
+        setPreferenceSyncStatus('synced');
+      } catch {
+        setPreferenceSyncStatus('error');
+      }
+    })();
+  }, [category, user?.uid]);
+
+  const resetSorting = useCallback(() => {
+    if (!window.confirm('确定将收藏卡片恢复为加入收藏的顺序吗？')) return;
+    updateCardPrefs((current) => {
+      const order = { ...current.order };
+      delete order[FAVORITES_CATEGORY];
+      return { ...current, order };
+    });
+  }, [updateCardPrefs]);
+
+  const reorderPlatforms = useCallback((dragged: string, target: string) => {
+    if (category !== FAVORITES_CATEGORY) return;
+    updateCardPrefs((current) => {
+      const insertionOrder = [...favoriteSources];
+      const baseOrder = current.order[FAVORITES_CATEGORY]?.length
+        ? [
+          ...current.order[FAVORITES_CATEGORY].filter((source) => favoriteSources.has(source)),
+          ...insertionOrder.filter((source) => !current.order[FAVORITES_CATEGORY].includes(source)),
+        ]
+        : insertionOrder;
+      const nextOrder = reorderSources(baseOrder, dragged, target);
+      return { ...current, order: { ...current.order, [FAVORITES_CATEGORY]: nextOrder } };
+    });
+  }, [category, favoriteSources, updateCardPrefs]);
+
+  const movePlatform = useCallback((source: string, direction: -1 | 1) => {
+    const sources = visiblePlatforms.map((platform) => platform.source);
+    const index = sources.indexOf(source);
+    const target = sources[index + direction];
+    if (target) reorderPlatforms(source, target);
+  }, [reorderPlatforms, visiblePlatforms]);
+
+  const toggleFavorite = useCallback((source: string) => {
+    const adding = !favoriteSources.has(source);
+    const next = new Set(favoriteSources);
+    if (adding) next.add(source);
+    else next.delete(source);
+    writeFavoriteSources(next);
+    setFavoriteSources(next);
+
+    updateCardPrefs((current) => {
+      const existingOrder = current.order[FAVORITES_CATEGORY];
+      if (!existingOrder?.length) return current;
+      const nextOrder = existingOrder.filter((item) => item !== source);
+      if (adding) nextOrder.push(source);
+      return { ...current, order: { ...current.order, [FAVORITES_CATEGORY]: nextOrder } };
+    });
+
+    if (adding) {
+      const platform = livePlatformsRef.current.find((item) => item.source === source);
+      if (platform && (platform.status === 'idle' || platform.status === 'error')) {
+        void loadPlatforms([source], true, { trackGlobalRefresh: false });
+      }
+    }
+  }, [favoriteSources, loadPlatforms, updateCardPrefs]);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       const favorites = readFavoriteSources();
+      const preferences = readCardPrefs();
+      const initialTheme = readThemePreference();
+      const navigation = readNavigationState();
       setFavoriteSources(favorites);
-      setCardPrefs(readCardPrefs());
-      setSortModeEnabled(localStorage.getItem(SORT_MODE_KEY) === '1');
+      setCardPrefs(preferences);
+      writeCardPrefs(preferences);
+      setSortModeEnabled(false);
+      localStorage.setItem(SORT_MODE_KEY, '0');
+      setTheme(initialTheme);
+      applyThemePreference(initialTheme);
+      setThemeReady(true);
+      if (navigation) {
+        setCategory(navigation.category);
+        setCurrentPage(navigation.page);
+      }
 
       const cached = readPlatformCache();
       if (cached.length) {
@@ -506,33 +649,147 @@ export default function Home() {
         livePlatformsRef.current = hydrated;
       }
 
-      const initialized = sessionStorage.getItem(INITIALIZED_KEY) === '1';
-      if (!initialized) {
-        void loadPlatforms(platforms.map((platform) => platform.source), true).then(() => {
-          sessionStorage.setItem(INITIALIZED_KEY, '1');
-        });
-      } else {
-        const favoriteList = [...favorites];
-        void loadPlatforms(favoriteList, true);
-      }
       setClientReady(true);
     });
 
     return () => cancelAnimationFrame(frame);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!clientReady || !authReady) return;
-    const userId = user?.uid ?? null;
-    if (resolvedCategoryUserId.current === userId) return;
+    const uid = user?.uid;
+    if (!uid) {
+      cloudLoadedUserId.current = null;
+      queueMicrotask(() => setPreferenceSyncStatus('local'));
+      return;
+    }
+    if (cloudLoadedUserId.current === uid) return;
 
-    setCategory(userId && favoriteSources.size > 0 ? FAVORITES_CATEGORY : '全部');
-    setCurrentPage(1);
-    resolvedCategoryUserId.current = userId;
-  }, [authReady, clientReady, favoriteSources.size, user?.uid]);
+    let cancelled = false;
+    void (async () => {
+      setPreferenceSyncStatus('syncing');
+      try {
+        const remote = await readCloudPreferences(uid);
+        if (cancelled) return;
+        const localFavorites = readFavoriteSources();
+        const localCardPrefs = readCardPrefs();
+        const remoteCardPrefs = remote?.version === 4
+          ? remote.cardPrefs
+          : remote?.cardPrefs ? { ...remote.cardPrefs, order: {} } : undefined;
+        const mergedCardPrefs = mergeCardPreferences(localCardPrefs, remoteCardPrefs);
+        const favorites = new Set(mergeUnique(remote?.favorites ?? [], [...localFavorites]));
+        const mergedTheme = remote?.theme === 'dark' || remote?.theme === 'light'
+          ? remote.theme
+          : readThemePreference();
+        const mergedSortMode = false;
+
+        setFavoriteSources(favorites);
+        writeFavoriteSources(favorites);
+        setCardPrefs(mergedCardPrefs);
+        writeCardPrefs(mergedCardPrefs);
+        setSortModeEnabled(mergedSortMode);
+        localStorage.setItem(SORT_MODE_KEY, mergedSortMode ? '1' : '0');
+        setTheme(mergedTheme);
+        applyThemePreference(mergedTheme);
+
+        const merged: UserPreferences = {
+          version: 4,
+          favorites: [...favorites],
+          cardPrefs: mergedCardPrefs,
+          sortModeEnabled: mergedSortMode,
+          theme: mergedTheme,
+          updatedAt: Date.now(),
+        };
+        await writeCloudPreferences(uid, merged);
+        if (cancelled) return;
+        cloudLoadedUserId.current = uid;
+        setPreferenceSyncStatus('synced');
+      } catch {
+        if (!cancelled) setPreferenceSyncStatus('error');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [authReady, clientReady, user?.uid]);
+
+  useEffect(() => {
+    const uid = user?.uid;
+    if (!uid || cloudLoadedUserId.current !== uid || !clientReady) return;
+    setPreferenceSyncStatus('syncing');
+    const timeout = window.setTimeout(() => {
+      const preferences: UserPreferences = {
+        version: 4,
+        favorites: [...favoriteSources],
+        cardPrefs,
+        sortModeEnabled,
+        theme,
+        updatedAt: Date.now(),
+      };
+      void writeCloudPreferences(uid, preferences)
+        .then(() => setPreferenceSyncStatus('synced'))
+        .catch(() => setPreferenceSyncStatus('error'));
+    }, 700);
+    return () => window.clearTimeout(timeout);
+  }, [cardPrefs, clientReady, favoriteSources, sortModeEnabled, theme, user?.uid]);
+
+  useEffect(() => {
+    if (!clientReady || !authReady || sessionLoadStarted.current) return;
+    sessionLoadStarted.current = true;
+
+    const visibleSources = filterPlatforms(
+      livePlatformsRef.current,
+      category,
+      '',
+      favoriteSources,
+      cardPrefs.order[category] ?? [],
+    ).map((platform) => platform.source);
+    const pageSources = visibleSources.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+    prevNavigation.current = { category, safePage, query: '' };
+
+    void (async () => {
+      setIsRefreshing(true);
+      try {
+        if (pageSources.length) {
+          await loadPlatforms(pageSources, true, {
+            trackGlobalRefresh: false,
+            concurrency: Math.min(PAGE_MAX_CONCURRENCY, pageSources.length),
+          });
+        }
+      } finally {
+        setIsRefreshing(false);
+        sessionLoadComplete.current = true;
+      }
+    })();
+  }, [authReady, cardPrefs.order, category, clientReady, favoriteSources, loadPlatforms, safePage]);
+
+  useEffect(() => {
+    if (!clientReady) return;
+    writeNavigationState(category, safePage);
+  }, [category, clientReady, safePage]);
+
+  useEffect(() => {
+    if (!clientReady || !sessionLoadComplete.current) return;
+
+    const prev = prevNavigation.current;
+    if (prev.category === category && prev.safePage === safePage && prev.query === query) return;
+    prevNavigation.current = { category, safePage, query };
+
+    const pageSources = [...pagedSources];
+
+    void (async () => {
+      if (pageSources.length) {
+        await loadPlatforms(pageSources, false, {
+          trackGlobalRefresh: false,
+          concurrency: Math.min(PAGE_MAX_CONCURRENCY, pageSources.length),
+        });
+      }
+    })();
+  }, [category, clientReady, loadPlatforms, pagedSources, query, safePage, visiblePlatforms]);
 
   const refreshVisible = useCallback(() => {
-    void loadPlatforms(pagedSources, true);
+    void loadPlatforms(pagedSources, true, {
+      concurrency: Math.min(PAGE_MAX_CONCURRENCY, pagedSources.length),
+    });
   }, [loadPlatforms, pagedSources]);
 
   useEffect(() => {
@@ -546,13 +803,24 @@ export default function Home() {
     return () => cancelAnimationFrame(frame);
   }, [safePage]);
 
-  const healthyCount = livePlatforms.filter((platform) => platform.status === 'success').length;
-  const loadingCount = livePlatforms.filter((platform) => platform.status === 'loading').length;
-
   const changePage = (page: number) => {
     shouldScrollAfterPageChange.current = true;
     setCurrentPage(Math.min(Math.max(page, 1), pageCount));
   };
+
+  const selectCategory = (nextCategory: string) => {
+    if (nextCategory !== FAVORITES_CATEGORY && sortModeEnabled) {
+      setSortModeEnabled(false);
+      localStorage.setItem(SORT_MODE_KEY, '0');
+      dragSourceRef.current = null;
+      setDraggingSource(null);
+      setDropTarget(null);
+    }
+    setCategory(nextCategory);
+    setCurrentPage(1);
+  };
+
+  const favoriteSortModeEnabled = category === FAVORITES_CATEGORY && sortModeEnabled;
 
   const categoryHeading = category === '全部'
     ? '全部热榜'
@@ -566,14 +834,20 @@ export default function Home() {
         <div className="site-header-main">
           <div className="site-header-brand">
             <div className="brand-title"><span className="brand-icon" aria-hidden="true"><i /><i /><i /></span><h1>热榜汇</h1></div>
-            <p className="site-tagline">全网热榜一屏尽览，此刻正在发生</p>
-            <div className="status-line"><span><b /> {clientReady && loadingCount ? `正在连接 ${loadingCount} 个来源` : '实时数据已连接'}</span><span suppressHydrationWarning>{clientReady ? healthyCount : '—'}/{platforms.length} 个平台可用</span><span>条目直达原文</span></div>
+            <p className="site-tagline">热榜一屏尽览，此刻正在发生</p>
           </div>
           <HeaderActions
             isRefreshing={isRefreshing}
             onRefresh={refreshVisible}
-            sortModeEnabled={sortModeEnabled}
+            sortModeEnabled={favoriteSortModeEnabled}
+            sortModeAvailable={category === FAVORITES_CATEGORY}
             onToggleSortMode={toggleSortMode}
+            theme={theme}
+            themeReady={themeReady}
+            onToggleTheme={toggleTheme}
+            preferenceSyncStatus={preferenceSyncStatus}
+            onRestoreCloud={restoreCloudPreferences}
+            onResetSorting={resetSorting}
           />
         </div>
       </header>
@@ -582,7 +856,7 @@ export default function Home() {
         <nav className="primary-tabs app-shell" aria-label="热榜分类">
           <button
             className={category === FAVORITES_CATEGORY ? 'active' : ''}
-            onClick={() => { setCategory(FAVORITES_CATEGORY); setCurrentPage(1); }}
+            onClick={() => selectCategory(FAVORITES_CATEGORY)}
           >
             {FAVORITES_CATEGORY}{' '}
             <small>{categoryTabCount(FAVORITES_CATEGORY)}</small>
@@ -590,7 +864,7 @@ export default function Home() {
           <span className="primary-tabs-divider" aria-hidden="true" />
           <button
             className={category === '全部' ? 'active' : ''}
-            onClick={() => { setCategory('全部'); setCurrentPage(1); }}
+            onClick={() => selectCategory('全部')}
           >
             全部{' '}
             <small>{categoryTabCount('全部')}</small>
@@ -599,7 +873,7 @@ export default function Home() {
             <button
               key={item}
               className={category === item ? 'active' : ''}
-              onClick={() => { setCategory(item); setCurrentPage(1); }}
+              onClick={() => selectCategory(item)}
             >
               {item}{' '}
               <small>{categoryTabCount(item)}</small>
@@ -622,7 +896,7 @@ export default function Home() {
         </div>
 
         <div className="content-heading">
-          <div><h2>{categoryHeading}</h2><p>{category === FAVORITES_CATEGORY ? '收藏的平台会显示在这里，点击卡片上的星标即可添加或取消。' : sortModeEnabled ? '拖动卡片标题栏左侧可调整顺序（优先级最高）；点击条目会计入该卡片点击次数。' : '阅读模式下按点击次数自动排序；每次点击条目都会增加该卡片点击次数并自动前移。右上角可开启排序模式以手动调整顺序。'}</p></div>
+          <div><h2>{categoryHeading}</h2><p>{category === FAVORITES_CATEGORY ? favoriteSortModeEnabled ? '拖动卡片或在拖动按钮上按 Alt＋方向键调整顺序，变更会同步到账号。' : '卡片默认按加入收藏的顺序排列；可开启排序模式手动调整。' : '数字和英文名称优先，其余卡片按拼音排序。'}</p></div>
           <span>{visiblePlatforms.length} 个平台 · 第 {safePage}/{pageCount} 页</span>
         </div>
 
@@ -634,25 +908,29 @@ export default function Home() {
               const visibleLimit = isExpanded ? EXPANDED_ITEM_LIMIT : DEFAULT_ITEM_LIMIT;
               const hasMoreItems = platform.items.length > DEFAULT_ITEM_LIMIT;
               const isFavorite = favoriteSources.has(platform.source);
-              const cardClicks = cardPrefs.clicks[platform.source] ?? 0;
               const isDragging = draggingSource === platform.source;
               const isDropTarget = dropTarget === platform.source;
               const fetchLabel = platformFetchLabel(platform);
+              const statusLabel = platform.status === 'error'
+                ? platform.items.length ? `使用上次数据 · ${platform.updated}` : '暂不可用'
+                : platform.status === 'success'
+                  ? platform.updated
+                  : platform.status === 'idle' ? '等待加载' : '正在抓取…';
 
               return (
               <article
-                className={`platform-card${isWide ? ' is-wide' : ''}${sortModeEnabled && isDragging ? ' is-dragging' : ''}${sortModeEnabled && isDropTarget ? ' is-drop-target' : ''}`}
+                className={`platform-card${isWide ? ' is-wide' : ''}${favoriteSortModeEnabled && isDragging ? ' is-dragging' : ''}${favoriteSortModeEnabled && isDropTarget ? ' is-drop-target' : ''}`}
                 key={platform.source}
-                onDragOver={sortModeEnabled ? (event) => {
+                onDragOver={favoriteSortModeEnabled ? (event) => {
                   event.preventDefault();
                   if (dragSourceRef.current && dragSourceRef.current !== platform.source) {
                     setDropTarget(platform.source);
                   }
                 } : undefined}
-                onDragLeave={sortModeEnabled ? () => {
+                onDragLeave={favoriteSortModeEnabled ? () => {
                   if (dropTarget === platform.source) setDropTarget(null);
                 } : undefined}
-                onDrop={sortModeEnabled ? (event) => {
+                onDrop={favoriteSortModeEnabled ? (event) => {
                   event.preventDefault();
                   const dragged = dragSourceRef.current;
                   if (dragged && dragged !== platform.source) reorderPlatforms(dragged, platform.source);
@@ -662,13 +940,18 @@ export default function Home() {
                 } : undefined}
               >
                 <header className="card-head">
-                  {sortModeEnabled ? (
+                  {favoriteSortModeEnabled ? (
                     <button
                       type="button"
                       className="card-drag-handle"
                       draggable
                       aria-label="拖动排序"
-                      title="拖动排序"
+                      title="拖动排序；Alt＋↑/↓ 可用键盘移动"
+                      onKeyDown={(event) => {
+                        if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return;
+                        event.preventDefault();
+                        movePlatform(platform.source, event.key === 'ArrowUp' ? -1 : 1);
+                      }}
                       onDragStart={(event) => {
                         dragSourceRef.current = platform.source;
                         setDraggingSource(platform.source);
@@ -689,9 +972,29 @@ export default function Home() {
                       <span className="platform-icon-fallback" style={{ background: platform.color }}>{platform.short}</span>
                       {/* Platform logos use a native image so the fallback can take over immediately on load errors. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={platform.logo} alt="" width="128" height="128" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+                      <img
+                        src={platform.logo}
+                        alt=""
+                        width="128"
+                        height="128"
+                        onError={(event) => {
+                          event.currentTarget.style.display = 'none';
+                          event.currentTarget.previousElementSibling?.classList.add('is-visible');
+                        }}
+                      />
                     </span>
-                    <span><strong>{platform.name}</strong><small>{platform.category} · {platform.updated}{cardClicks > 0 ? ` · 点击 ${cardClicks}` : ''}</small></span>
+                    <span className="card-title-wrap">
+                      <span className="card-title">
+                        <strong className="card-brand">{platform.brand}</strong>
+                        {platform.listName ? (
+                          <>
+                            <span className="card-title-sep" aria-hidden="true">·</span>
+                            <span className="card-list-name">{platform.listName}</span>
+                          </>
+                        ) : null}
+                      </span>
+                      <small>{platform.category}</small>
+                    </span>
                   </a>
                   <div className="card-actions">
                     <button
@@ -755,8 +1058,6 @@ export default function Home() {
                       setActiveTip(null);
                       suppressedTip.current = tipId;
                     };
-                    const navigateItem = () => recordCardClick(platform.source);
-
                     const hasMeta = Boolean(item.heat || item.rising);
 
                     return (
@@ -769,9 +1070,9 @@ export default function Home() {
                       <span className={`rank ${index < 3 ? 'top' : ''}`}>{index + 1}</span>
                       <span className="hot-title-cell">
                         {item.url ? (
-                          <a className="hot-title-link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => { navigateItem(); dismissTip(); }}>{item.title}</a>
+                          <a className="hot-title-link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={dismissTip} aria-label={item.byline ? `${item.title}，${item.byline}` : undefined}><HotItemLabel item={item} /></a>
                         ) : (
-                          <span className="hot-title unavailable">{item.title}</span>
+                          <span className="hot-title unavailable"><HotItemLabel item={item} /></span>
                         )}
                       </span>
                       <span className="item-meta">{item.rising && <b>↑</b>}{item.heat}</span>
@@ -781,16 +1082,16 @@ export default function Home() {
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          onClick={() => { navigateItem(); dismissTip(); }}
+                          onClick={dismissTip}
                         >
                           <span className={`rank ${index < 3 ? 'top' : ''}`} aria-hidden="true">{index + 1}</span>
-                          <span className="hot-tip-text">{item.title}</span>
+                          <span className="hot-tip-text"><HotItemLabel item={item} /></span>
                           {hasMeta && <span className="hot-tip-meta-slot" aria-hidden="true">{item.rising && <b>↑</b>}{item.heat}</span>}
                         </a>
                       ) : (
                         <span className={`hot-tip hot-tip-static${showTip ? ' visible' : ''}`}>
                           <span className={`rank ${index < 3 ? 'top' : ''}`} aria-hidden="true">{index + 1}</span>
-                          <span className="hot-tip-text">{item.title}</span>
+                          <span className="hot-tip-text"><HotItemLabel item={item} /></span>
                           {hasMeta && <span className="hot-tip-meta-slot" aria-hidden="true">{item.rising && <b>↑</b>}{item.heat}</span>}
                         </span>
                       )}
@@ -800,7 +1101,8 @@ export default function Home() {
                 </ol> : <div className="card-empty">{platform.status === 'error' ? '该来源当前公共接口不可用' : platform.status === 'idle' ? '正在加载全部平台数据…' : '正在获取最新热榜…'}</div>}
                 <footer>
                   <span className={platform.status === 'error' ? 'source-error' : ''}>
-                    <i /> {platform.status === 'error' ? '暂不可用' : platform.status === 'success' ? '更新正常' : platform.status === 'idle' ? '等待加载' : '连接中'}
+                    <i /> {statusLabel}
+                    {platform.consecutiveFailures > 0 ? ` · 连续失败 ${platform.consecutiveFailures} 次` : ''}
                     {platform.items.length ? ` · 显示 ${Math.min(visibleLimit, platform.items.length)}/${platform.items.length} 条` : ''}
                     {fetchLabel !== '本站直连' ? ` · ${fetchLabel}` : ''}
                   </span>
@@ -818,7 +1120,9 @@ export default function Home() {
           <button onClick={() => changePage(safePage + 1)} disabled={safePage === pageCount}>下一页</button>
         </nav>}
 
-        <footer className="site-footer"><span>热榜汇 · 数据仅用于趋势浏览</span><span>共收录 {platforms.length} 个平台</span></footer>
+        <footer className="site-footer">
+          <span>热榜汇 · 数据仅用于趋势浏览</span>
+        </footer>
       </div>
     </main>
   );

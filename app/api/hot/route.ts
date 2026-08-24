@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'node:crypto';
 import { getSourceDefinition } from '../../source-catalog';
 import { fetchOfficial, hasOfficialFetcher } from './official-fetchers';
-import { browserHeaders, decodeHtml, dedupeItems, parseFeed, type UnifiedItem } from './utils';
+import { browserHeaders, decodeHtml, dedupeItems, fetchJson, fetchText, parseFeed, scrapeAnchors, type UnifiedItem } from './utils';
 
 async function fetchNewsNow(source: string) {
   const upstream = await fetch(`https://newsnow.busiyi.world/api/s?id=${encodeURIComponent(source)}`, {
@@ -75,6 +75,200 @@ async function fetchCaixin() {
       url: match[1],
     }))
     .filter((item) => item.title.length > 6 && !seen.has(item.url) && seen.add(item.url));
+  return { updatedTime: Date.now(), items };
+}
+
+async function fetchInfzmHot() {
+  const data = await fetchJson<{
+    data?: {
+      hot_contents?: Array<{
+        id?: number;
+        subject?: string;
+        short_subject?: string;
+      }>;
+    };
+  }>('https://www.infzm.com/hot_contents?format=json', 'https://www.infzm.com/');
+  const items = (data.data?.hot_contents ?? []).flatMap((article) => {
+    const title = decodeHtml(article.subject || article.short_subject || '');
+    if (!article.id || !title) return [];
+    return [{
+      id: article.id,
+      title,
+      url: `https://www.infzm.com/contents/${article.id}`,
+    }];
+  });
+  return { updatedTime: Date.now(), items };
+}
+
+async function fetchDili360Hot() {
+  const pageUrl = 'https://www.dili360.com/';
+  const html = await fetchText(pageUrl);
+  const block = html.match(
+    /<h2\s+class=["']subtitle["']>\s*热度榜\s*<\/h2>\s*<ul\s+class=["']content["']>([\s\S]*?)<\/ul>/i,
+  )?.[1] ?? '';
+  const items = Array.from(block.matchAll(
+    /<li[^>]*>[\s\S]*?<span[^>]*>\s*(\d+)\s*<\/span>[\s\S]*?<h3[^>]*>\s*<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,
+  )).flatMap((match) => {
+    const title = decodeHtml(match[3]);
+    if (!title) return [];
+    return [{
+      id: match[1],
+      title,
+      url: new URL(decodeHtml(match[2]), pageUrl).href,
+    }];
+  });
+  if (!items.length) throw new Error('Dili360 hot list was not found');
+  return { updatedTime: Date.now(), items };
+}
+
+async function fetchXinhuaLatest() {
+  const pageUrl = 'https://www.news.cn/';
+  const html = await fetchText(pageUrl);
+  const block = html.match(
+    /<div\s+id=["']latest["'][^>]*>([\s\S]*?)(?:<div\s+id=["']main["']|<\/fjtignoreurl>)/i,
+  )?.[1] ?? '';
+  const items = Array.from(block.matchAll(
+    /<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,
+  )).flatMap((match, index) => {
+    const title = decodeHtml(match[2]);
+    if (!title) return [];
+    const url = new URL(decodeHtml(match[1]), pageUrl).href;
+    return [{ id: url || index, title, url }];
+  });
+  if (!items.length) throw new Error('Xinhua latest list was not found');
+  return { updatedTime: Date.now(), items: items.slice(0, 30) };
+}
+
+async function fetchCctvLatest() {
+  const pageUrl = 'https://news.cctv.com/news/index.shtml';
+  const text = await fetchText(
+    'https://news.cctv.com/2019/07/gaiban/cmsdatainterface/page/news_1.jsonp',
+    pageUrl,
+    'application/javascript,text/javascript,*/*',
+  );
+  const payload = text.match(/^[^(]+\(([\s\S]*)\)\s*;?\s*$/)?.[1];
+  if (!payload) throw new Error('CCTV latest JSONP was invalid');
+  const data = JSON.parse(payload) as {
+    data?: {
+      list?: Array<{ id?: string; title?: string; url?: string }>;
+    };
+  };
+  const items = (data.data?.list ?? []).flatMap((article) => {
+    if (!article.id || !article.title || !article.url) return [];
+    return [{
+      id: article.id,
+      title: decodeHtml(article.title),
+      url: article.url,
+    }];
+  });
+  if (!items.length) throw new Error('CCTV latest list was empty');
+  return { updatedTime: Date.now(), items: items.slice(0, 30) };
+}
+
+async function fetchJiemianFlash() {
+  const pageUrl = 'https://www.jiemian.com/lists/4.html';
+  const html = await fetchText(pageUrl);
+  const firstPageMatches = Array.from(html.matchAll(
+    /data-time=["'](\d+)["'][^>]*data-id=["'](\d+)["'][\s\S]{0,900}?<h4>\s*<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,
+  ));
+  const items: UnifiedItem[] = firstPageMatches.flatMap((match) => {
+    const title = decodeHtml(match[4]);
+    if (!title) return [];
+    return [{ id: match[2], title, url: new URL(decodeHtml(match[3]), pageUrl).href }];
+  });
+  const lastTime = firstPageMatches.at(-1)?.[1];
+  if (lastTime && items.length < 30) {
+    try {
+      const params = new URLSearchParams({ cid: '4', start_time: lastTime, page: '2', tagid: '' });
+      const data = await fetchJson<{
+        result?: { list?: Array<{ id?: string; title?: string }> };
+      }>(`https://papi.jiemian.com/page/api/kuaixun/getlistmore?${params}`, pageUrl);
+      for (const article of data.result?.list ?? []) {
+        if (!article.id || !article.title) continue;
+        items.push({
+          id: article.id,
+          title: decodeHtml(article.title),
+          url: `https://www.jiemian.com/article/${article.id}.html`,
+        });
+        if (items.length >= 30) break;
+      }
+    } catch {
+      // The first official page still provides 20 current entries if pagination is unavailable.
+    }
+  }
+  if (!items.length) throw new Error('Jiemian flash list was not found');
+  return { updatedTime: Date.now(), items: items.slice(0, 30) };
+}
+
+async function fetchAiBotDaily() {
+  const pageUrl = 'https://ai-bot.cn/daily-ai-news/';
+  const upstream = await fetch(pageUrl, {
+    headers: {
+      ...browserHeaders,
+      Accept: 'text/html,application/xhtml+xml',
+      Referer: 'https://ai-bot.cn/',
+    },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!upstream.ok) throw new Error(`AI Bot returned ${upstream.status}`);
+  const html = await upstream.text();
+  const items = scrapeAnchors(
+    html,
+    /<div[^>]+class=["'][^"']*\bnews-item\b[^"']*["'][^>]*>[\s\S]*?<h2[^>]*>\s*<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>\s*<\/h2>/gi,
+    (href, title, index) => ({
+      id: href || index,
+      title,
+      url: new URL(href, pageUrl).href,
+    }),
+  ).slice(0, 30);
+  return { updatedTime: Date.now(), items };
+}
+
+async function fetchAiMediaLatest(source: string) {
+  if (source === 'ai-media-jiqizhixin') {
+    const pageUrl = 'https://www.jiqizhixin.com/';
+    type JiqizhixinResponse = {
+      articles?: Array<{
+        id?: string;
+        title?: string;
+        slug?: string;
+      }>;
+    };
+    const data = await fetchJson<JiqizhixinResponse>(
+      `${pageUrl}api/article_library/articles.json?sort=time&page=1&per=20`,
+      pageUrl,
+    );
+    const items = (data.articles ?? []).flatMap((article) => {
+      if (!article.id || !article.title || !article.slug) return [];
+      return [{
+        id: article.id,
+        title: decodeHtml(article.title),
+        url: `${pageUrl}articles/${article.slug}`,
+      }];
+    }).slice(0, 30);
+    return { updatedTime: Date.now(), items };
+  }
+
+  const site = source === 'ai-media-qbitai'
+    ? 'https://www.qbitai.com/'
+    : source === 'ai-media-aiera'
+      ? 'https://aiera.com.cn/'
+      : '';
+  if (!site) throw new Error('Unsupported AI media source');
+  const data = await fetchJson<Array<{
+    id?: number;
+    link?: string;
+    title?: { rendered?: string };
+  }>>(
+    `${site}wp-json/wp/v2/posts?per_page=30&page=1&_fields=id,link,title`,
+    site,
+  );
+  const items = data.flatMap((article) => {
+    const title = decodeHtml(article.title?.rendered ?? '');
+    if (!article.id || !article.link || !title) return [];
+    return [{ id: article.id, title, url: article.link }];
+  }).slice(0, 30);
   return { updatedTime: Date.now(), items };
 }
 
@@ -367,6 +561,35 @@ function extractJsonScript(html: string, id: string) {
   }
 }
 
+async function fetchFanqieTop() {
+  const upstream = await fetch('https://fanqienovel.com/api/author/misc/top_book_list/v1/?limit=30&offset=0', {
+    headers: { ...browserHeaders, Referer: 'https://fanqienovel.com/?enter_from=menu' },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!upstream.ok) throw new Error(`Fanqie Novel returned ${upstream.status}`);
+  const data = await upstream.json() as {
+    book_list?: Array<{
+      book_id?: string;
+      book_name?: string;
+      author?: string;
+    }>;
+  };
+  const items = (data.book_list ?? []).flatMap((book) => {
+    if (!book.book_id || !book.book_name) return [];
+    const url = `https://fanqienovel.com/page/${book.book_id}`;
+    return [{
+      id: book.book_id,
+      title: book.book_name,
+      byline: book.author,
+      url,
+      mobileUrl: url,
+    }];
+  }).slice(0, 30);
+  if (!items.length) throw new Error('Empty Fanqie top rank');
+  return { updatedTime: Date.now(), items };
+}
+
 async function fetchQidianHotsales() {
   const upstream = await fetch('https://m.qidian.com/rank/hotsales', {
     headers: mobileHeaders,
@@ -396,26 +619,114 @@ async function fetchQidianHotsales() {
 }
 
 async function fetchHongguoHot() {
-  const upstream = await fetch('https://hongguoduanju.com/category?tab=1', {
-    headers: mobileHeaders,
-    cache: 'no-store',
-    signal: AbortSignal.timeout(15000),
-  });
-  if (!upstream.ok) throw new Error(`Hongguo returned ${upstream.status}`);
-  const html = await upstream.text();
-  const seen = new Set<string>();
-  const items = Array.from(html.matchAll(/<a[^>]+href="\/detail\?series_id=(\d+)"[^>]*>[\s\S]*?<img[^>]+alt="([^"]+)"/gi))
-    .flatMap((match) => {
-      const id = match[1];
-      const title = decodeHtml(match[2]);
+  type HongguoResponse = {
+    recommendList?: Array<{
+      series_id?: string;
+      series_name?: string;
+      episode_cnt?: number;
+      episode_right_text?: string;
+    }>;
+  };
+  const apiPath = '/api/category/page?tab=1&page_num=1&sort_type=0&gender=2';
+  let data: HongguoResponse | undefined;
+  for (const origin of ['https://hongguoduanju.com', 'https://novelquickapp.com']) {
+    try {
+      const upstream = await fetch(`${origin}${apiPath}`, {
+        headers: { ...browserHeaders, Referer: 'https://hongguoduanju.com/category?tab=1' },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!upstream.ok) continue;
+      data = await upstream.json() as HongguoResponse;
+      if (data.recommendList?.length) break;
+    } catch {
+      // The current and legacy official domains occasionally fail independently.
+    }
+  }
+  if (!data?.recommendList?.length) throw new Error('Hongguo API unavailable');
+  const items = (data.recommendList ?? [])
+    .flatMap((entry) => {
+      const id = entry.series_id;
+      const title = entry.series_name;
+      if (!id || !title) return [];
       const url = `https://hongguoduanju.com/detail?series_id=${id}`;
-      if (!title || seen.has(id)) return [];
-      seen.add(id);
-      return [{ id, title, url, mobileUrl: url }];
+      const episodeText = entry.episode_right_text || (entry.episode_cnt ? `全${entry.episode_cnt}集` : '');
+      return [{
+        id,
+        title,
+        url,
+        mobileUrl: url,
+        extra: episodeText ? { info: episodeText } : undefined,
+      }];
     })
     .slice(0, 30);
   if (!items.length) throw new Error('Empty Hongguo rank');
   return { updatedTime: Date.now(), items };
+}
+
+async function fetchMaoyanBoxOffice() {
+  const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0';
+  const timestamp = Date.now();
+  const index = Math.floor(Math.random() * 1000) + 1;
+  const encodedUserAgent = Buffer.from(userAgent).toString('base64');
+  const signatureSource = [
+    'method=GET',
+    `timeStamp=${timestamp}`,
+    `User-Agent=${encodedUserAgent}`,
+    `index=${index}`,
+    'channelId=40009',
+    'sVersion=2',
+    'key=A013F70DB97834C0A5492378BD76C53A',
+  ].join('&');
+  const signKey = createHash('md5').update(signatureSource).digest('hex');
+  const params = new URLSearchParams({
+    orderType: '0',
+    uuid: '18affa452e4c8-057e2dc1cfbe0c-78505771-384000-18affa452e55',
+    timeStamp: String(timestamp),
+    'User-Agent': encodedUserAgent,
+    index: String(index),
+    channelId: '40009',
+    sVersion: '2',
+    signKey,
+  });
+  const upstream = await fetch(`https://piaofang.maoyan.com/dashboard-ajax/movie?${params}`, {
+    headers: {
+      Accept: 'application/json, text/plain, */*',
+      Referer: 'https://piaofang.maoyan.com/dashboard/movie',
+      'User-Agent': userAgent,
+    },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!upstream.ok) throw new Error(`Maoyan returned ${upstream.status}`);
+  const data = await upstream.json() as {
+    movieList?: {
+      list?: Array<{
+        movieInfo?: { movieId?: number; movieName?: string };
+        sumBoxDesc?: string;
+      }>;
+      updateInfo?: { updateTimestamp?: number };
+    };
+  };
+  const items = (data.movieList?.list ?? []).flatMap((entry) => {
+    const id = entry.movieInfo?.movieId;
+    const title = entry.movieInfo?.movieName;
+    if (!id || !title) return [];
+    const url = `https://www.maoyan.com/films/${id}`;
+    const totalBoxOffice = entry.sumBoxDesc?.trim();
+    const totalBoxOfficeWithUnit = totalBoxOffice && /^\d+(?:\.\d+)?$/.test(totalBoxOffice)
+      ? `${totalBoxOffice}元`
+      : totalBoxOffice;
+    return [{
+      id,
+      title,
+      url,
+      mobileUrl: url,
+      extra: totalBoxOfficeWithUnit ? { info: `${totalBoxOfficeWithUnit}总票房` } : undefined,
+    }];
+  }).slice(0, 30);
+  if (!items.length) throw new Error('Empty Maoyan box office');
+  return { updatedTime: data.movieList?.updateInfo?.updateTimestamp ?? Date.now(), items };
 }
 
 function mapCnBetaArticleUrl(url: string) {
@@ -471,9 +782,12 @@ function getWereadId(bookId: string) {
 async function fetchWeread(source: string) {
   const types: Record<string, string> = {
     'weread-rising': 'rising',
+    'weread-hot-search': 'hot_search',
     'weread-newbook': 'newbook',
+    'weread-novel': 'general_novel_rising',
     'weread-all': 'all',
     'weread-masterpiece': 'newrating_publish',
+    'weread-potential': 'newrating_potential_publish',
   };
   const type = types[source];
   if (!type) throw new Error('Unsupported WeRead source');
@@ -485,8 +799,7 @@ async function fetchWeread(source: string) {
   if (!upstream.ok) throw new Error(`WeRead returned ${upstream.status}`);
   const data = await upstream.json() as {
     books?: Array<{
-      bookInfo?: { bookId?: string; title?: string; author?: string };
-      readingCount?: number;
+      bookInfo?: { bookId?: string; title?: string; author?: string; newRating?: number };
     }>;
   };
   const items = (data.books ?? []).flatMap((entry) => {
@@ -494,9 +807,12 @@ async function fetchWeread(source: string) {
     if (!book?.bookId || !book.title) return [];
     return [{
       id: book.bookId,
-      title: book.author ? `${book.title} · ${book.author}` : book.title,
+      title: book.title,
+      byline: book.author,
       url: `https://weread.qq.com/web/bookDetail/${getWereadId(book.bookId)}`,
-      extra: entry.readingCount ? { info: String(entry.readingCount) } : undefined,
+      extra: Number.isFinite(book.newRating)
+        ? { info: `推荐值 ${(book.newRating! / 10).toFixed(1)}%` }
+        : undefined,
     }];
   });
   return { updatedTime: Date.now(), items };
@@ -511,8 +827,18 @@ async function fetchDouban(source: string) {
     });
     if (!upstream.ok) throw new Error(`Douban Book returned ${upstream.status}`);
     const html = await upstream.text();
-    const items = Array.from(html.matchAll(/<a\s+class=["']fleft["']\s+href=["'](https:\/\/book\.douban\.com\/subject\/(\d+)\/)["'][^>]*>([\s\S]*?)<\/a>/gi))
-      .map((match) => ({ id: match[2], title: decodeHtml(match[3]), url: match[1] }));
+    const items = Array.from(html.matchAll(/<li\s+class=["']media clearfix["']>([\s\S]*?)<\/li>/gi)).flatMap((match) => {
+      const block = match[1];
+      const anchor = block.match(/<a\s+class=["']fleft["']\s+href=["'](https:\/\/book\.douban\.com\/subject\/(\d+)\/)["'][^>]*>([\s\S]*?)<\/a>/i);
+      if (!anchor) return [];
+      const score = block.match(/subject-rating[\s\S]*?<span\s+class=["']font-small fleft["']>\s*([\d.]+)\s*<\/span>/i)?.[1];
+      return [{
+        id: anchor[2],
+        title: decodeHtml(anchor[3]),
+        url: anchor[1],
+        extra: score ? { info: `评分 ${score}` } : undefined,
+      }];
+    });
     return { updatedTime: Date.now(), items };
   }
 
@@ -535,33 +861,143 @@ async function fetchDouban(source: string) {
   return { updatedTime: Date.now(), items };
 }
 
-function decodeUnicodeEscapes(value: string) {
-  return value.replace(/\\u([0-9a-f]{4})/gi, (_, code: string) => String.fromCharCode(Number.parseInt(code, 16)));
-}
-
-async function fetchYouku() {
-  const upstream = await fetch('https://www.youku.com/channel/webtv/list', {
+async function fetchYouku(listUrl = 'https://www.youku.com/channel/webtv/list') {
+  const upstream = await fetch(listUrl, {
     headers: { ...browserHeaders, Accept: 'text/html,application/xhtml+xml' },
     cache: 'no-store',
     signal: AbortSignal.timeout(15000),
   });
   if (!upstream.ok) throw new Error(`Youku returned ${upstream.status}`);
   const html = await upstream.text();
-  const items = Array.from(html.matchAll(/"videoLink":"([^"]+)"[\s\S]{0,1200}?"title":"([^"]+)"[\s\S]{0,1200}?"component_id":"WEB_RANKING"/g))
-    .map((match, index) => {
-      const path = decodeUnicodeEscapes(match[1]);
-      return {
-        id: path.match(/id_([^.?/]+)/)?.[1] ?? index,
-        title: decodeUnicodeEscapes(match[2]),
-        url: path.startsWith('//') ? `https:${path}` : path,
-      };
-    });
+  const markerIndex = html.indexOf('window.__INITIAL_DATA__');
+  const braceStart = html.indexOf('{', markerIndex);
+  if (markerIndex === -1 || braceStart === -1) throw new Error('Youku __INITIAL_DATA__ not found');
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let braceEnd = -1;
+  for (let index = braceStart; index < html.length; index += 1) {
+    const char = html[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === '{') depth += 1;
+    else if (char === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        braceEnd = index;
+        break;
+      }
+    }
+  }
+  if (braceEnd === -1) throw new Error('Youku __INITIAL_DATA__ is incomplete');
+
+  type YoukuItem = { title?: string; videoLink?: string; link?: string };
+  type YoukuComponent = { tag?: string; itemList?: YoukuItem[] };
+  type YoukuModule = { components?: YoukuComponent[] };
+  const data = JSON.parse(html.slice(braceStart, braceEnd + 1).replace(/\bundefined\b/g, 'null')) as {
+    moduleList?: YoukuModule[];
+  };
+  const rankingModule = (data.moduleList ?? []).find((module) => (
+    module.components?.some((component) => component.tag === 'WEB_RANKING')
+  ));
+  const defaultRanking = rankingModule?.components?.find((component) => component.tag === 'WEB_RANKING');
+  const seen = new Set<string>();
+  const items = (defaultRanking?.itemList ?? []).flatMap((item) => {
+    const title = decodeHtml(item.title ?? '');
+    const path = item.videoLink || item.link || '';
+    const url = path.startsWith('//') ? `https:${path}` : path;
+    if (!title || !/^https:\/\/v\.youku\.com\//.test(url) || seen.has(url)) return [];
+    seen.add(url);
+    return [{
+      id: url.match(/id_([^.?/]+)/)?.[1] ?? url,
+      title,
+      url,
+    }];
+  });
+  return { updatedTime: Date.now(), items };
+}
+
+async function fetchBilibiliPopularAll() {
+  const upstream = await fetch('https://api.bilibili.com/x/web-interface/popular?ps=50&pn=1', {
+    headers: { ...browserHeaders, Referer: 'https://www.bilibili.com/' },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!upstream.ok) throw new Error(`Bilibili returned ${upstream.status}`);
+  const data = await upstream.json() as {
+    data?: {
+      list?: Array<{
+        bvid?: string;
+        title?: string;
+        owner?: { name?: string };
+        stat?: { view?: number };
+      }>;
+    };
+  };
+
+  const items = (data.data?.list ?? []).flatMap((item) => {
+    if (!item.bvid || !item.title) return [];
+    const url = `https://www.bilibili.com/video/${item.bvid}`;
+    return [{
+      id: item.bvid,
+      title: item.owner?.name ? `${item.title} · ${item.owner.name}` : item.title,
+      url,
+      mobileUrl: url,
+      extra: item.stat?.view ? { info: String(item.stat.view) } : undefined,
+    }];
+  });
+
   return { updatedTime: Date.now(), items };
 }
 
 async function fetchMusic(source: string) {
+  if (source === 'music-apple-cn') {
+    const pageUrl = 'https://music.apple.com/cn/playlist/%E6%AF%8F%E5%91%A8%E7%83%AD%E9%97%A8-100-%E9%A6%96-%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86/pl.939cf56e73c44970b81fd9648f859223';
+    const html = await fetchText(pageUrl, pageUrl, 'text/html,application/xhtml+xml');
+    const payload = html.match(
+      /<script[^>]+id=["']serialized-server-data["'][^>]*>([\s\S]*?)<\/script>/i,
+    )?.[1];
+    if (!payload) throw new Error('Apple Music chart data was not found');
+    type AppleTrack = {
+      title?: string;
+      artistName?: string;
+      contentDescriptor?: {
+        identifiers?: { storeAdamID?: string };
+        url?: string;
+      };
+    };
+    const data = JSON.parse(payload) as {
+      data?: Array<{
+        data?: {
+          sections?: Array<{ itemKind?: string; items?: AppleTrack[] }>;
+        };
+      }>;
+    };
+    const tracks = data.data?.[0]?.data?.sections
+      ?.find((section) => section.itemKind === 'trackLockup')?.items ?? [];
+    const items = tracks.flatMap((song) => {
+      const id = song.contentDescriptor?.identifiers?.storeAdamID;
+      const url = song.contentDescriptor?.url;
+      if (!id || !song.title || !url) return [];
+      return [{
+        id,
+        title: song.title,
+        byline: song.artistName,
+        url,
+      }];
+    }).slice(0, 30);
+    if (!items.length) throw new Error('Apple Music chart was empty');
+    return { updatedTime: Date.now(), items };
+  }
+
   if (source.startsWith('music-netease-')) {
-    const playlistId = source === 'music-netease-classical' ? '71384707' : '3778678';
+    const playlistId = '3778678';
     const upstream = await fetch(`https://music.163.com/api/v3/playlist/detail?id=${playlistId}&n=30`, {
       headers: { ...browserHeaders, Referer: 'https://music.163.com/' },
       cache: 'no-store',
@@ -573,14 +1009,15 @@ async function fetchMusic(source: string) {
     };
     const items = (data.playlist?.tracks ?? []).map((song) => ({
       id: song.id,
-      title: `${song.name} · ${(song.ar ?? []).map((artist) => artist.name).join('/')}`,
+      title: song.name,
+      byline: (song.ar ?? []).map((artist) => artist.name).join('/'),
       url: `https://music.163.com/#/song?id=${song.id}`,
     }));
     return { updatedTime: Date.now(), items };
   }
 
   if (source.startsWith('music-qq-')) {
-    const topId = source === 'music-qq-douyin' ? '60' : '4';
+    const topId = '26';
     const upstream = await fetch(`https://c.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg?topid=${topId}&page=detail&type=top&song_num=30`, {
       headers: { ...browserHeaders, Referer: 'https://y.qq.com/' },
       cache: 'no-store',
@@ -595,7 +1032,8 @@ async function fetchMusic(source: string) {
       if (!song?.songmid || !song.songname) return [];
       return [{
         id: song.songmid,
-        title: `${song.songname} · ${(song.singer ?? []).map((artist) => artist.name).join('/')}`,
+        title: song.songname,
+        byline: (song.singer ?? []).map((artist) => artist.name).join('/'),
         url: `https://y.qq.com/n/ryqq/songDetail/${song.songmid}`,
       }];
     });
@@ -603,7 +1041,7 @@ async function fetchMusic(source: string) {
   }
 
   if (source.startsWith('music-kugou-')) {
-    const rankId = source === 'music-kugou-shortvideo' ? '52144' : '8888';
+    const rankId = '8888';
     const upstream = await fetch(`https://www.kugou.com/yy/rank/home/1-${rankId}.html?from=rank`, {
       headers: { ...browserHeaders, Accept: 'text/html,application/xhtml+xml', Referer: 'https://www.kugou.com/' },
       cache: 'no-store',
@@ -612,7 +1050,35 @@ async function fetchMusic(source: string) {
     if (!upstream.ok) throw new Error(`Kugou returned ${upstream.status}`);
     const html = await upstream.text();
     const items = Array.from(html.matchAll(/<li[^>]+title=["']([^"']+)["'][^>]+data-index=["']\d+["'][\s\S]*?<a\s+href=["'](https:\/\/www\.kugou\.com\/mixsong\/([^"']+)\.html)["'][^>]+class=["']pc_temp_songname["']/gi))
-      .map((match) => ({ id: match[3], title: decodeHtml(match[1]), url: match[2] }));
+      .map((match) => {
+        const label = decodeHtml(match[1]);
+        const separatorIndex = label.indexOf(' - ');
+        const artist = separatorIndex > 0 ? label.slice(0, separatorIndex).trim() : '';
+        const title = separatorIndex > 0 ? label.slice(separatorIndex + 3).trim() : label;
+        return { id: match[3], title, byline: artist, url: match[2] };
+      });
+    return { updatedTime: Date.now(), items };
+  }
+
+  if (source === 'music-kuwo-hot') {
+    const upstream = await fetch('https://kbangserver.kuwo.cn/ksong.s?from=pc&fmt=json&pn=0&rn=30&type=bang&data=content&id=16', {
+      headers: { ...browserHeaders, Referer: 'https://www.kuwo.cn/rankList' },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!upstream.ok) throw new Error(`Kuwo Music returned ${upstream.status}`);
+    const data = await upstream.json() as {
+      musiclist?: Array<{ id?: string; name?: string; artist?: string }>;
+    };
+    const items = (data.musiclist ?? []).flatMap((song) => {
+      if (!song.id || !song.name) return [];
+      return [{
+        id: song.id,
+        title: song.name,
+        byline: song.artist,
+        url: `https://www.kuwo.cn/play_detail/${song.id}`,
+      }];
+    });
     return { updatedTime: Date.now(), items };
   }
 
@@ -638,7 +1104,8 @@ async function fetchMusic(source: string) {
     };
     const items = (data.data?.list ?? []).map((song) => ({
       id: song.music_id,
-      title: `${song.music_title} · ${song.singer ?? ''}`,
+      title: song.music_title,
+      byline: song.singer,
       url: song.mv_bvid || song.creation_bvid
         ? `https://www.bilibili.com/video/${song.mv_bvid || song.creation_bvid}`
         : `https://music.bilibili.com/pc/music-detail?music_id=${song.music_id}`,
@@ -708,6 +1175,13 @@ async function fetchForeign(source: string) {
 }
 
 async function fetchDirect(source: string) {
+  if (source === 'ai-bot-daily') return fetchAiBotDaily();
+  if (source.startsWith('ai-media-')) return fetchAiMediaLatest(source);
+  if (source === 'infzm-hot') return fetchInfzmHot();
+  if (source === 'dili360-hot') return fetchDili360Hot();
+  if (source === 'xinhua-latest') return fetchXinhuaLatest();
+  if (source === 'cctv-latest') return fetchCctvLatest();
+  if (source === 'jiemian-flash') return fetchJiemianFlash();
   if (source === 'caixin') return fetchCaixin();
   if (source === 'eastmoney') return fetchEastmoney();
   if (source === 'eastmoney-stock') return fetchEastmoneyStock();
@@ -720,9 +1194,17 @@ async function fetchDirect(source: string) {
   if (source.startsWith('cnbeta-')) return fetchCnBeta(source);
   if (source.startsWith('weread-')) return fetchWeread(source);
   if (source.startsWith('douban-')) return fetchDouban(source);
-  if (source === 'youku-ranking') return fetchYouku();
+  if (source === 'youku-tv') {
+    return fetchYouku('https://www.youku.com/channel/webtv/list');
+  }
+  if (source === 'youku-movie') {
+    return fetchYouku('https://www.youku.com/channel/webmovie/list');
+  }
+  if (source === 'bilibili-popular-all') return fetchBilibiliPopularAll();
+  if (source === 'fanqie-top') return fetchFanqieTop();
   if (source === 'qidian-hotsales') return fetchQidianHotsales();
   if (source === 'hongguo-hot') return fetchHongguoHot();
+  if (source === 'maoyan-box-office') return fetchMaoyanBoxOffice();
   if (source.startsWith('music-')) return fetchMusic(source);
   if (source.startsWith('foreign-')) return fetchForeign(source);
   throw new Error('Unsupported direct source');

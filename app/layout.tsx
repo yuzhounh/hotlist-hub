@@ -16,23 +16,23 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://hotlist-hub.vercel.app'),
-  title: '热榜汇｜全网热榜卡片墙',
-  description: '全网热榜一屏尽览，聚合微博、知乎、抖音、新闻、科技与开发者平台，打开即看此刻热点。',
+  title: '热榜汇',
+  description: '热榜一屏尽览，聚合微博、知乎、抖音、新闻、科技与开发者平台，打开即看此刻热点。',
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
     shortcut: '/favicon.svg',
   },
   openGraph: {
-    title: '热榜汇｜全网热榜卡片墙',
-    description: '全网热榜一屏尽览，此刻正在发生。',
-    images: [{ url: '/og.png', width: 1732, height: 909, alt: '热榜汇｜全网热榜卡片墙' }],
+    title: '热榜汇',
+    description: '热榜一屏尽览，此刻正在发生。',
+    images: [{ url: '/og.png', width: 1732, height: 909, alt: '热榜汇' }],
     locale: 'zh_CN',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: '热榜汇｜全网热榜卡片墙',
-    description: '全网热榜一屏尽览，此刻正在发生。',
+    title: '热榜汇',
+    description: '热榜一屏尽览，此刻正在发生。',
     images: ['/og.png'],
   },
 };
