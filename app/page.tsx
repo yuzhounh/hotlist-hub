@@ -267,7 +267,9 @@ function mergeCardPreferences(local: CardPrefsData, remote?: Partial<CardPrefsDa
     clean(remote?.order?.[FAVORITES_CATEGORY]),
     clean(local.order[FAVORITES_CATEGORY]),
   );
-  const order = favoriteOrder.length ? { [FAVORITES_CATEGORY]: favoriteOrder } : {};
+  const order: Record<string, string[]> = favoriteOrder.length
+    ? { [FAVORITES_CATEGORY]: favoriteOrder }
+    : {};
   return {
     wide: mergeUnique(clean(remote?.wide), local.wide),
     expanded: mergeUnique(clean(remote?.expanded), local.expanded),
