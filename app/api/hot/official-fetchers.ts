@@ -44,7 +44,7 @@ async function fetchZhihuHot(): Promise<HotResult> {
 }
 
 async function fetchTiebaHot(): Promise<HotResult> {
-  const data = await fetchJson<{ data?: { bang_topic?: { topic_list?: Array<{ topic_id?: number; topic_name?: string }> } } }>(
+  const data = await fetchJson<{ data?: { bang_topic?: { topic_list?: Array<{ topic_id?: number; topic_name?: string; discuss_num?: number }> } } }>(
     'https://tieba.baidu.com/hottopic/browse/topicList',
     'https://tieba.baidu.com/',
   );
@@ -52,12 +52,13 @@ async function fetchTiebaHot(): Promise<HotResult> {
     id: entry.topic_id,
     title: entry.topic_name,
     url: `https://tieba.baidu.com/hottopic/browse/hottopic?topic_id=${entry.topic_id}`,
+    extra: entry.discuss_num ? { info: String(entry.discuss_num) } : undefined,
   }] : []);
   return { updatedTime: Date.now(), items };
 }
 
 async function fetchDoubanChart(): Promise<HotResult> {
-  const data = await fetchJson<{ items?: Array<{ id: string; title: string; rating?: { count?: number } }> }>(
+  const data = await fetchJson<{ items?: Array<{ id: string; title: string; rating?: { value?: number } }> }>(
     'https://m.douban.com/rexxar/api/v2/subject/recent_hot/movie?start=0&limit=30&category=%E7%83%AD%E9%97%A8&type=%E5%85%A8%E9%83%A8',
     'https://movie.douban.com/',
   );
@@ -67,15 +68,15 @@ async function fetchDoubanChart(): Promise<HotResult> {
       id: item.id,
       title: item.title,
       url: `https://movie.douban.com/subject/${item.id}/`,
-      extra: item.rating?.count ? { info: String(item.rating.count) } : undefined,
+      extra: item.rating?.value ? { info: `评分 ${item.rating.value}` } : undefined,
     })),
   };
 }
 
 async function fetchBaiduHot(): Promise<HotResult> {
   const data = await fetchJson<{ data?: { cards?: Array<{ content?: unknown }> } }>(
-    'https://top.baidu.com/api/board?platform=wise&tab=realtime',
-    'https://top.baidu.com/',
+    'https://top.baidu.com/api/board?platform=pc&tab=realtime',
+    'https://top.baidu.com/board?tab=realtime',
   );
   type BaiduEntry = { word?: string; desc?: string; hotScore?: string | number; rawUrl?: string; url?: string };
   const flatten = (node: unknown): BaiduEntry[] => {
@@ -90,7 +91,15 @@ async function fetchBaiduHot(): Promise<HotResult> {
   const items = (data.data?.cards ?? []).flatMap((card) => flatten(card.content)).flatMap((entry) => {
     const title = entry.word || entry.desc;
     if (!title) return [];
-    return [{ id: title, title, url: entry.rawUrl || entry.url || `https://www.baidu.com/s?wd=${encodeURIComponent(title)}`, extra: entry.hotScore ? { info: String(entry.hotScore) } : undefined }];
+    const hotScore = Number(entry.hotScore);
+    return [{
+      id: title,
+      title,
+      url: entry.rawUrl || `https://www.baidu.com/s?wd=${encodeURIComponent(title)}`,
+      extra: Number.isFinite(hotScore) && hotScore > 0
+        ? { info: hotScore.toLocaleString('zh-CN') }
+        : undefined,
+    }];
   });
   return { updatedTime: Date.now(), items };
 }
@@ -211,7 +220,7 @@ async function fetchToutiaoHot(): Promise<HotResult> {
     'https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc',
     'https://www.toutiao.com/',
   );
-  const items = (data.data ?? []).flatMap((entry, index) => entry.Title ? [{
+  const items = (data.data ?? []).slice(0, 30).flatMap((entry, index) => entry.Title ? [{
     id: entry.Title,
     title: entry.Title,
     url: entry.Url || `https://www.toutiao.com/trending/${index}/`,
@@ -308,7 +317,13 @@ async function fetchDouyinHot(): Promise<HotResult> {
     const title = entry.word;
     if (!title) return [];
     const id = entry.sentence_id ?? `douyin-${index}`;
-    return [{ id, title, url: `https://www.douyin.com/hot/${id}`, mobileUrl: `https://www.douyin.com/hot/${id}`, extra: entry.hot_value ? { info: String(entry.hot_value) } : undefined }];
+    return [{
+      id,
+      title,
+      url: `https://www.douyin.com/hot/${id}`,
+      mobileUrl: `https://www.douyin.com/hot/${id}`,
+      extra: entry.hot_value != null ? { info: `热度 ${entry.hot_value}` } : undefined,
+    }];
   });
   return { updatedTime: Date.now(), items };
 }
@@ -339,22 +354,51 @@ async function fetchDongqiudi(): Promise<HotResult> {
 }
 
 async function fetch36kr(): Promise<HotResult> {
-  // Must use POST (GET returns 81-byte error per analysis).
-  const data = await fetchJson<{ data?: { hotRankList?: Array<{ itemId?: string; templateMaterial?: { widgetTitle?: string; widgetImage?: string; authorName?: string }; publishTime?: number }> } }>(
-    'https://gateway.36kr.com/api/mis/nav/home/nav/rank/hot',
-    'https://www.36kr.com/',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json; charset=utf-8' },
-      body: JSON.stringify({ partner_id: 'wap', param: { siteId: 1, platformId: 2 }, timestamp: Date.now() }),
-    },
-  );
-  const items = (data.data?.hotRankList ?? []).flatMap((entry) => {
-    const title = entry.templateMaterial?.widgetTitle;
-    if (!title || !entry.itemId) return [];
-    return [{ id: entry.itemId, title, url: `https://www.36kr.com/p/${entry.itemId}`, mobileUrl: `https://m.36kr.com/p/${entry.itemId}` }];
+  type OfficialEntry = {
+    itemId?: string;
+    templateMaterial?: { widgetTitle?: string; statRead?: number };
+  };
+  try {
+    // Must use POST (GET returns an error response).
+    const data = await fetchJson<{ data?: { hotRankList?: OfficialEntry[] } }>(
+      'https://gateway.36kr.com/api/mis/nav/home/nav/rank/hot',
+      'https://www.36kr.com/',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        body: JSON.stringify({ partner_id: 'wap', param: { siteId: 1, platformId: 2 }, timestamp: Date.now() }),
+      },
+    );
+    const items = (data.data?.hotRankList ?? []).flatMap((entry) => {
+      const title = entry.templateMaterial?.widgetTitle;
+      if (!title || !entry.itemId) return [];
+      return [{
+        id: entry.itemId,
+        title,
+        url: `https://www.36kr.com/p/${entry.itemId}`,
+        mobileUrl: `https://m.36kr.com/p/${entry.itemId}`,
+        extra: entry.templateMaterial?.statRead ? { info: String(entry.templateMaterial.statRead) } : undefined,
+      }];
+    });
+    if (items.length) return { updatedTime: Date.now(), items };
+  } catch {
+    // Some edge runtimes cannot keep a connection to the official gateway.
+  }
+
+  const fallback = await fetchJson<{
+    updateTime?: number | string;
+    data?: Array<{ id?: string | number; title?: string; url?: string; mobileUrl?: string }>;
+  }>('https://daily-hot-for-ai.vercel.app/api/36kr', 'https://www.36kr.com/');
+  const items = (fallback.data ?? []).flatMap((entry) => {
+    if (!entry.id || !entry.title || !entry.url) return [];
+    return [{
+      id: entry.id,
+      title: entry.title,
+      url: entry.url,
+      mobileUrl: entry.mobileUrl,
+    }];
   });
-  return { updatedTime: Date.now(), items };
+  return { updatedTime: fallback.updateTime ?? Date.now(), items };
 }
 
 function pad2(n: number) {
@@ -468,15 +512,16 @@ async function fetchLol(): Promise<HotResult> {
 }
 
 async function fetchCankaoxiaoxi(): Promise<HotResult> {
-  const data = await fetchJson<{ list?: Array<{ id?: string; title?: string; url?: string; publishTime?: string }> }>(
-    'https://china.cankaoxiaoxi.com/json/channel/zhongguo/list.json',
+  const data = await fetchJson<{ list?: Array<{ id?: string; data?: { id?: string; title?: string; url?: string } }> }>(
+    'https://ckxxapp.ckxx.net/json/channel/gj/list.json',
     'https://www.cankaoxiaoxi.com/',
   );
   const items = (data.list ?? []).flatMap((entry) => {
-    if (!entry.id || !entry.title) return [];
-    const url = entry.url || `https://www.cankaoxiaoxi.com/${entry.id}.html`;
-    return [{ id: entry.id, title: entry.title, url, mobileUrl: url, extra: entry.publishTime ? { info: entry.publishTime } : undefined }];
-  });
+    const article = entry.data;
+    const id = article?.id || entry.id;
+    if (!id || !article?.title || !article.url) return [];
+    return [{ id, title: article.title, url: article.url, mobileUrl: article.url }];
+  }).slice(0, 30);
   return { updatedTime: Date.now(), items };
 }
 
@@ -496,7 +541,6 @@ async function fetchQqVideoHot(): Promise<HotResult> {
     if (url.startsWith('//')) url = `https:${url}`;
     if (!title || !/^https?:\/\//i.test(url)) continue;
     const heat = block.match(/bar_inner" style="width:([\d.]+)%/i)?.[1];
-    const rising = block.includes('icon_rise_xs');
     items.push({
       id: `${rank}-${title}`,
       title,
@@ -504,7 +548,6 @@ async function fetchQqVideoHot(): Promise<HotResult> {
       mobileUrl: url,
       extra: {
         info: heat ? `热度 ${Math.round(Number(heat))}%` : undefined,
-        diff: rising ? 1 : undefined,
       },
     });
   }
@@ -552,20 +595,83 @@ async function fetchHuxiu(): Promise<HotResult> {
 }
 
 async function fetchIfeng(): Promise<HotResult> {
-  const html = await fetchText('https://www.ifeng.com/', 'https://www.ifeng.com/', 'text/html,application/xhtml+xml');
-  // Extract hotNews1 array from embedded `var allData = {...}`.
-  const seen = new Set<string>();
-  const items: UnifiedItem[] = [];
-  // Match individual news entries with title+url in the hotNews blocks.
-  for (const match of html.matchAll(/"title"\s*:\s*"([^"]+)"[\s\S]{0,300}?"url"\s*:\s*"(https?:\/\/[^"]+)"/g)) {
-    const title = decodeHtml(match[1]);
-    const url = match[2];
-    if (!title || title.length < 4 || seen.has(url)) continue;
-    seen.add(url);
-    const id = url.match(/\/(\d+)\.shtml/)?.[1] ?? url;
-    items.push({ id, title, url, mobileUrl: url });
-    if (items.length >= 30) break;
+  const pageUrl = 'https://news.ifeng.com/';
+  const html = await fetchText(pageUrl, pageUrl, 'text/html,application/xhtml+xml');
+  const marker = 'var allData =';
+  const markerIndex = html.indexOf(marker);
+  const braceStart = html.indexOf('{', markerIndex);
+  if (markerIndex === -1 || braceStart === -1) throw new Error('Ifeng news data not found');
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let braceEnd = -1;
+  for (let index = braceStart; index < html.length; index += 1) {
+    const char = html[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === '{') depth += 1;
+    else if (char === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        braceEnd = index;
+        break;
+      }
+    }
   }
+  if (braceEnd === -1) throw new Error('Ifeng news data is incomplete');
+
+  type IfengEntry = { id?: string; title?: string; url?: string; newsTime?: string };
+  type IfengPageData = {
+    isEnd?: boolean;
+    newsstream?: IfengEntry[];
+    newsStream?: { key?: string; type?: string };
+    columnId?: string;
+  };
+  const data = JSON.parse(html.slice(braceStart, braceEnd + 1)) as IfengPageData;
+  const entries = [...(data.newsstream ?? [])];
+
+  if (entries.length < 30 && !data.isEnd) {
+    const lastEntry = entries.at(-1);
+    const columnId = data.newsStream?.key ?? data.columnId;
+    const dataType = data.newsStream?.type ?? 'default';
+    const timestamp = lastEntry?.newsTime
+      ? Date.parse(`${lastEntry.newsTime.replace(' ', 'T')}+08:00`)
+      : Number.NaN;
+    if (lastEntry?.id && columnId && Number.isFinite(timestamp)) {
+      const callback = 'getColumnInfoCallback';
+      const moreUrl = `https://shankapi.ifeng.com/api/_/getColumnInfo/_/${encodeURIComponent(dataType)}/${encodeURIComponent(lastEntry.id)}/${timestamp}/20/${encodeURIComponent(columnId)}/${callback}`;
+      try {
+        const jsonp = await fetchText(moreUrl, pageUrl, '*/*');
+        const jsonStart = jsonp.indexOf('(');
+        const jsonEnd = jsonp.lastIndexOf(')');
+        if (jsonStart !== -1 && jsonEnd > jsonStart) {
+          const moreData = JSON.parse(jsonp.slice(jsonStart + 1, jsonEnd)) as { data?: IfengPageData };
+          entries.push(...(moreData.data?.newsstream ?? []));
+        }
+      } catch {
+        // Keep the 20-item first page when Phoenix's pagination endpoint is temporarily unavailable.
+      }
+    }
+  }
+
+  const seen = new Set<string>();
+  const items = entries.flatMap((entry) => {
+    const title = decodeHtml(entry.title ?? '');
+    const url = entry.url ?? '';
+    if (!title || title.length < 4 || !/^https:\/\/news\.ifeng\.com\/c\//.test(url) || seen.has(url)) return [];
+    seen.add(url);
+    return [{
+      id: entry.id ?? url,
+      title,
+      url,
+    }];
+  }).slice(0, 30);
   return { updatedTime: Date.now(), items };
 }
 
@@ -592,10 +698,20 @@ async function fetchKuaishou(): Promise<HotResult> {
     const node = ref ? (client[ref] as Record<string, unknown> | undefined) : undefined;
     const name = typeof node?.name === 'string' ? node.name : '';
     const poster = typeof node?.poster === 'string' ? node.poster : '';
+    const hotValue = typeof node?.hotValue === 'string' ? node.hotValue : '';
+    const hotNumber = Number.parseFloat(hotValue.replace('万', ''));
     const vid = /clientCacheKey=([A-Za-z0-9]+)/.exec(poster)?.[1] ?? `apollo-${i}`;
     const link = `https://www.kuaishou.com/short-video/${vid}`;
     if (!name) continue;
-    items.push({ id: vid, title: name, url: link, mobileUrl: link });
+    items.push({
+      id: vid,
+      title: name,
+      url: link,
+      mobileUrl: link,
+      extra: Number.isFinite(hotNumber)
+        ? { info: String(hotValue.includes('万') ? hotNumber * 10_000 : hotNumber) }
+        : undefined,
+    });
     if (items.length >= 30) break;
   }
   return { updatedTime: Date.now(), items };
@@ -733,7 +849,6 @@ export const officialFetchers: Record<string, () => Promise<HotResult>> = {
   'dailyhot:ngabbs': () => fetchHtmlAnchors('https://ngabbs.com/', 'https://bbs.nga.cn/', /href="\/read\.php\?tid=(\d+)"[^>]*>([\s\S]*?)<\/a>/gi, (tid) => `https://ngabbs.com/read.php?tid=${tid}`),
   'dailyhot:nytimes': () => fetchFeedHot('https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml', 'https://www.nytimes.com/'),
   'dailyhot:sina-news': () => fetchSinaRoll('2509'),
-  'dailyhot:sina': () => fetchSinaRoll('2510'),
   // ===== 26 platforms migrated from third-party (NewsNow/DailyHot) to direct =====
   'newsnow:douyin': fetchDouyinHot,
   'newsnow:cls-hot': fetchClsHot,

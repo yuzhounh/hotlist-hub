@@ -1,20 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 export const THEME_KEY = 'rebanghui-theme';
-
-function readTheme(): 'light' | 'dark' {
-  if (typeof document === 'undefined') return 'light';
-  const stored = localStorage.getItem(THEME_KEY);
-  if (stored === 'dark' || stored === 'light') return stored;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function applyTheme(theme: 'light' | 'dark') {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem(THEME_KEY, theme);
-}
 
 function SunIcon() {
   return (
@@ -33,27 +19,7 @@ function MoonIcon() {
   );
 }
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      const current = readTheme();
-      applyTheme(current);
-      setTheme(current);
-      setReady(true);
-    });
-
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  const toggle = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
-    setTheme(next);
-  };
-
+export function ThemeToggle({ theme, ready, onToggle }: { theme: 'light' | 'dark'; ready: boolean; onToggle: () => void }) {
   const nextThemeLabel = theme === 'dark' ? '切换浅色模式' : '切换深色模式';
 
   return (
@@ -62,7 +28,7 @@ export function ThemeToggle() {
       type="button"
       aria-label={nextThemeLabel}
       title={nextThemeLabel}
-      onClick={toggle}
+      onClick={onToggle}
       disabled={!ready}
     >
       {theme === 'dark' ? <SunIcon /> : <MoonIcon />}

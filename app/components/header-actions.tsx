@@ -1,6 +1,7 @@
 'use client';
 
 import { AuthButton } from './auth-button';
+import { RankingNavigation } from './ranking-navigation';
 import { SortModeToggle } from './sort-mode-toggle';
 import { ThemeToggle } from './theme-toggle';
 
@@ -8,13 +9,33 @@ type HeaderActionsProps = {
   isRefreshing: boolean;
   onRefresh: () => void;
   sortModeEnabled: boolean;
+  sortModeAvailable: boolean;
   onToggleSortMode: () => void;
+  theme: 'light' | 'dark';
+  themeReady: boolean;
+  onToggleTheme: () => void;
+  preferenceSyncStatus: 'local' | 'syncing' | 'synced' | 'error';
+  onRestoreCloud: () => void;
+  onResetSorting: () => void;
 };
 
-export function HeaderActions({ isRefreshing, onRefresh, sortModeEnabled, onToggleSortMode }: HeaderActionsProps) {
+export function HeaderActions({
+  isRefreshing,
+  onRefresh,
+  sortModeEnabled,
+  sortModeAvailable,
+  onToggleSortMode,
+  theme,
+  themeReady,
+  onToggleTheme,
+  preferenceSyncStatus,
+  onRestoreCloud,
+  onResetSorting,
+}: HeaderActionsProps) {
   return (
     <div className="site-header-actions">
-      <SortModeToggle enabled={sortModeEnabled} onToggle={onToggleSortMode} />
+      {sortModeAvailable && <SortModeToggle enabled={sortModeEnabled} onToggle={onToggleSortMode} />}
+      <RankingNavigation />
       <button
         className={`header-icon-btn header-refresh${isRefreshing ? ' is-spinning' : ''}`}
         type="button"
@@ -25,8 +46,12 @@ export function HeaderActions({ isRefreshing, onRefresh, sortModeEnabled, onTogg
       >
         <span className="header-refresh-icon" aria-hidden="true">↻</span>
       </button>
-      <ThemeToggle />
-      <AuthButton />
+      <ThemeToggle theme={theme} ready={themeReady} onToggle={onToggleTheme} />
+      <AuthButton
+        syncStatus={preferenceSyncStatus}
+        onRestoreCloud={onRestoreCloud}
+        onResetSorting={onResetSorting}
+      />
     </div>
   );
 }

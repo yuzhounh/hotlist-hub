@@ -8,7 +8,20 @@ function displayName(name: string | null | undefined, email: string | null | und
   return value.length > 16 ? `${value.slice(0, 16)}…` : value;
 }
 
-export function AuthButton() {
+type AuthButtonProps = {
+  syncStatus: 'local' | 'syncing' | 'synced' | 'error';
+  onRestoreCloud: () => void;
+  onResetSorting: () => void;
+};
+
+const syncLabels = {
+  local: '设置保存在本机',
+  syncing: '正在同步设置…',
+  synced: '个性化设置已同步',
+  error: '同步失败，已保存在本机',
+};
+
+export function AuthButton({ syncStatus, onRestoreCloud, onResetSorting }: AuthButtonProps) {
   const { user, ready, configured, signingIn, signInWithGoogle, signOutUser } = useAuth();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -78,8 +91,15 @@ export function AuthButton() {
             <div className="auth-menu-meta">
               <strong>{name}</strong>
               {user.email && <small>{user.email}</small>}
+              <small>{syncLabels[syncStatus]}</small>
             </div>
           </div>
+          <button className="auth-menu-logout" type="button" role="menuitem" onClick={() => { setOpen(false); onRestoreCloud(); }}>
+            从云端恢复设置
+          </button>
+          <button className="auth-menu-logout" type="button" role="menuitem" onClick={() => { setOpen(false); onResetSorting(); }}>
+            重置手动排序
+          </button>
           <button className="auth-menu-logout" type="button" role="menuitem" onClick={() => { setOpen(false); void signOutUser(); }}>
             退出
           </button>

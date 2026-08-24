@@ -21,7 +21,7 @@ type SortModeToggleProps = {
 export function SortModeToggle({ enabled, onToggle }: SortModeToggleProps) {
   return (
     <button
-      className={`header-icon-btn${enabled ? ' is-active' : ''}`}
+      className={`header-icon-btn sort-mode-toggle${enabled ? ' is-active' : ''}`}
       type="button"
       aria-label={enabled ? '退出排序模式' : '开启排序模式'}
       aria-pressed={enabled}
