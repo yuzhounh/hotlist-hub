@@ -642,6 +642,8 @@ export default function Home() {
       if (navigation) {
         setCategory(navigation.category);
         setCurrentPage(navigation.page);
+      } else if (favorites.size > 0) {
+        setCategory(FAVORITES_CATEGORY);
       }
 
       const cached = readPlatformCache();
