@@ -10,9 +10,12 @@ type RankingCategory = {
 };
 
 const RANKING_SITES = [
-  { name: '今日热榜', host: 'tophub.today', url: 'https://tophub.today/c/news' },
   { name: 'NewsNOW', host: 'newsnow.busiyi.world', url: 'https://newsnow.busiyi.world/c/hottest' },
   { name: 'TTKIT 每日热点', host: 'ttkit.cn', url: 'https://ttkit.cn/daily-hot' },
+  { name: '今日热榜', host: 'tophub.today', url: 'https://tophub.today/c/news' },
+  { name: '今日热榜', host: 'hot.xhily.com', url: 'https://hot.xhily.com/' },
+  { name: '今日热榜', host: 'hot.sapi.run', url: 'https://hot.sapi.run/#/' },
+  { name: '全网热榜', host: 'rebang.today', url: 'https://rebang.today/' },
 ];
 
 const CATEGORY_GROUPS: Array<{ title: string; items: RankingCategory[] }> = [
@@ -170,7 +173,6 @@ export function RankingNavigation() {
                 onClick={() => setMenuOpen(false)}
               >
                 <span><strong>{site.name}</strong><small>{site.host}</small></span>
-                <b aria-hidden="true">↗</b>
               </a>
             ))}
             <div className="ranking-navigation-menu-divider" />
