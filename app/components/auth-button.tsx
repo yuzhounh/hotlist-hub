@@ -22,7 +22,7 @@ const syncLabels = {
 };
 
 export function AuthButton({ syncStatus, onRestoreCloud, onResetSorting }: AuthButtonProps) {
-  const { user, ready, configured, signingIn, signInWithGoogle, signOutUser } = useAuth();
+  const { user, ready, configured, signingIn, signInError, signInWithGoogle, signOutUser } = useAuth();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -52,9 +52,12 @@ export function AuthButton({ syncStatus, onRestoreCloud, onResetSorting }: AuthB
 
   if (!user) {
     return (
-      <button className="auth-button" type="button" onClick={() => void signInWithGoogle()} disabled={signingIn}>
-        {signingIn ? '登录中…' : 'Google 登录'}
-      </button>
+      <div className="auth-login-wrap">
+        <button className="auth-button" type="button" onClick={() => void signInWithGoogle()} disabled={signingIn}>
+          {signingIn ? '登录中…' : 'Google 登录'}
+        </button>
+        {signInError && <div className="auth-login-error" role="alert">{signInError}</div>}
+      </div>
     );
   }
 
