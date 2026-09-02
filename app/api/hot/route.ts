@@ -4,61 +4,6 @@ import { getSourceDefinition } from '../../source-catalog';
 import { fetchOfficial, hasOfficialFetcher } from './official-fetchers';
 import { browserHeaders, decodeHtml, dedupeItems, fetchJson, fetchText, parseFeed, scrapeAnchors, type UnifiedItem } from './utils';
 
-async function fetchNewsNow(source: string) {
-  const upstream = await fetch(`https://newsnow.busiyi.world/api/s?id=${encodeURIComponent(source)}`, {
-    headers: { ...browserHeaders, Referer: 'https://newsnow.busiyi.world/' },
-    cache: 'no-store',
-    signal: AbortSignal.timeout(10000),
-  });
-  if (!upstream.ok) throw new Error(`NewsNow returned ${upstream.status}`);
-  const data = await upstream.json() as { updatedTime?: number | string; items?: UnifiedItem[] };
-  return { updatedTime: data.updatedTime, items: data.items ?? [] };
-}
-
-async function fetchDailyHot(source: string) {
-  const upstream = await fetch(`https://daily-hot-for-ai.vercel.app/api/${encodeURIComponent(source)}`, {
-    headers: browserHeaders,
-    cache: 'no-store',
-    signal: AbortSignal.timeout(10000),
-  });
-  if (!upstream.ok) throw new Error(`DailyHot returned ${upstream.status}`);
-  const data = await upstream.json() as {
-    updateTime?: number | string;
-    data?: Array<UnifiedItem & { hot?: string | number; timestamp?: number }>;
-  };
-  const items = (data.data ?? [])
-    .filter((item) => source !== 'ifanr' || !item.title?.toUpperCase().includes('BIRTV'))
-    .map((item, index) => ({
-    id: item.id ?? item.url ?? index,
-    title: item.title,
-    url: item.url,
-    mobileUrl: item.mobileUrl,
-    extra: item.extra ?? (item.hot ? { info: String(item.hot) } : undefined),
-  }));
-  return { updatedTime: data.updateTime, items };
-}
-
-async function fetchHelti(source: string) {
-  const upstream = await fetch(`https://ttkit.cn/daily-hot/api/${encodeURIComponent(source)}`, {
-    headers: { ...browserHeaders, Referer: 'https://ttkit.cn/daily-hot' },
-    cache: 'no-store',
-    signal: AbortSignal.timeout(10000),
-  });
-  if (!upstream.ok) throw new Error(`HelTi returned ${upstream.status}`);
-  const data = await upstream.json() as {
-    updateTime?: number | string;
-    data?: Array<UnifiedItem & { hot?: string | number }>;
-  };
-  const items = (data.data ?? []).map((item, index) => ({
-    id: item.id ?? item.url ?? index,
-    title: item.title,
-    url: item.url,
-    mobileUrl: item.mobileUrl,
-    extra: item.extra ?? (item.hot !== undefined ? { info: String(item.hot) } : undefined),
-  }));
-  return { updatedTime: data.updateTime, items };
-}
-
 async function fetchCaixin() {
   const upstream = await fetch('https://www.caixin.com/', {
     headers: browserHeaders,
@@ -736,6 +681,36 @@ function mapCnBetaArticleUrl(url: string) {
 }
 
 async function fetchCnBeta(source: string) {
+  if (source === 'cnbeta-health') {
+    const upstream = await fetch('https://www.cnbeta.com.tw/topics/697.htm', {
+      headers: {
+        Accept: 'text/html,application/xhtml+xml',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36',
+      },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!upstream.ok) throw new Error(`cnBeta returned ${upstream.status}`);
+    const html = await upstream.text();
+    const seen = new Set<string>();
+    const items = Array.from(html.matchAll(/<a[^>]+href=["']([^"']*\/articles\/[^"']+\.htm)["'][^>]*>([\s\S]*?)<\/a>/gi))
+      .flatMap((match) => {
+        const url = new URL(match[1], 'https://www.cnbeta.com.tw').href;
+        const title = decodeHtml(match[2]);
+        if (!title || title === '详细内容' || seen.has(url)) return [];
+        seen.add(url);
+        return [{
+          id: url.match(/(\d+)\.htm(?:\?|$)/)?.[1] ?? url,
+          title,
+          url,
+          mobileUrl: url,
+        }];
+      })
+      .slice(0, 30);
+    if (!items.length) throw new Error('Empty cnBeta health topic');
+    return { updatedTime: Date.now(), items };
+  }
+
   const paths: Record<string, string> = {
     'cnbeta-latest': '',
     'cnbeta-hot': '/hot.htm',
@@ -1219,16 +1194,10 @@ export async function GET(request: NextRequest) {
 
   try {
     let data;
-    if (hasOfficialFetcher(sourceId)) {
-      data = await fetchOfficial(sourceId);
-    } else if (definition.provider === 'newsnow') {
-      data = await fetchNewsNow(definition.upstreamId);
-    } else if (definition.provider === 'helti') {
-      data = await fetchHelti(definition.upstreamId);
-    } else if (definition.provider === 'direct') {
-      data = await fetchDirect(definition.upstreamId);
+    if (hasOfficialFetcher(definition.source)) {
+      data = await fetchOfficial(definition.source);
     } else {
-      data = await fetchDailyHot(definition.upstreamId);
+      data = await fetchDirect(definition.upstreamId);
     }
     const items = dedupeItems(data.items);
     if (!items.length) throw new Error('Empty source');

@@ -1,6 +1,4 @@
-import { OFFICIAL_SOURCE_IDS } from './official-source-ids';
-
-export type SourceProvider = 'newsnow' | 'dailyhot' | 'helti' | 'direct';
+export type SourceProvider = 'direct';
 
 export type PlatformDefinition = {
   name: string;
@@ -46,47 +44,49 @@ function source(
 }
 
 export const sourceCatalog: PlatformDefinition[] = [
-  source('微博', '热搜', '微', '#ff4d4f', '社交', 'newsnow', 'weibo', 'https://weibo.com/hot/search'),
-  source('知乎', '热榜', '知', '#1677ff', '社交', 'newsnow', 'zhihu', 'https://www.zhihu.com/hot'),
-  source('百度贴吧', '热议榜', '贴', '#315efb', '社交', 'newsnow', 'tieba', 'https://tieba.baidu.com/hottopic/browse/topicList?res_type=1'),
-  source('豆瓣', '小组', '组', '#00a65a', '社交', 'dailyhot', 'douban-group', 'https://www.douban.com/group/'),
-  source('虎扑', '', '虎', '#d9232e', '社交', 'newsnow', 'hupu', 'https://bbs.hupu.com/'),
+  source('微博', '热搜', '微', '#ff4d4f', '社交', 'direct', 'weibo', 'https://weibo.com/hot/search'),
+  source('知乎', '热榜', '知', '#1677ff', '社交', 'direct', 'zhihu', 'https://www.zhihu.com/hot'),
+  source('百度贴吧', '热议榜', '贴', '#315efb', '社交', 'direct', 'tieba', 'https://tieba.baidu.com/hottopic/browse/topicList?res_type=1'),
+  source('豆瓣', '小组', '组', '#00a65a', '社交', 'direct', 'douban-group', 'https://www.douban.com/group/'),
+  source('虎扑', '', '虎', '#d9232e', '社交', 'direct', 'hupu', 'https://bbs.hupu.com/'),
 
-  source('今日头条', '头条热榜', '头', '#f04438', '新闻', 'newsnow', 'toutiao', 'https://www.toutiao.com/'),
-  source('百度热搜', '', '百', '#315efb', '新闻', 'newsnow', 'baidu', 'https://top.baidu.com/board?tab=realtime'),
-  source('澎湃新闻', '', '澎', '#52616b', '新闻', 'newsnow', 'thepaper', 'https://www.thepaper.cn/'),
+  source('今日头条', '头条热榜', '头', '#f04438', '新闻', 'direct', 'toutiao', 'https://www.toutiao.com/'),
+  source('百度热搜', '', '百', '#315efb', '新闻', 'direct', 'baidu', 'https://top.baidu.com/board?tab=realtime'),
+  source('澎湃新闻', '', '澎', '#52616b', '新闻', 'direct', 'thepaper', 'https://www.thepaper.cn/'),
   source('南方周末', '热门文章', '南', '#d71920', '新闻', 'direct', 'infzm-hot', 'https://www.infzm.com/'),
-  source('凤凰网', '热点资讯', '凤', '#d9272e', '新闻', 'newsnow', 'ifeng', 'https://news.ifeng.com/'),
+  source('凤凰网', '热点资讯', '凤', '#d9272e', '新闻', 'direct', 'ifeng', 'https://news.ifeng.com/'),
   source('新华网', '最新播报', '新', '#d71920', '新闻', 'direct', 'xinhua-latest', 'https://www.news.cn/'),
   source('央视新闻', '最新资讯', '央', '#005aaa', '新闻', 'direct', 'cctv-latest', 'https://news.cctv.com/news/index.shtml'),
   source('界面新闻', '24小时快报', '界', '#111111', '新闻', 'direct', 'jiemian-flash', 'https://www.jiemian.com/lists/4.html'),
-  source('参考消息', '国际资讯', '参', '#c81920', '新闻', 'newsnow', 'cankaoxiaoxi', 'https://www.cankaoxiaoxi.com/'),
+  source('参考消息', '国际资讯', '参', '#c81920', '新闻', 'direct', 'cankaoxiaoxi', 'https://www.cankaoxiaoxi.com/'),
+  source('联合早报', '中国新闻', '早', '#c62828', '新闻', 'direct', 'zaobao', 'https://www.zaobao.com.sg/news/china'),
   source('知乎', '日报', '日', '#0084ff', '其他', 'direct', 'zhihu-daily', 'https://daily.zhihu.com/'),
-  source('网易新闻', '', '易', '#d81e06', '新闻', 'dailyhot', 'netease-news', 'https://news.163.com/'),
-  source('腾讯新闻', '', '讯', '#1677ff', '新闻', 'dailyhot', 'qq-news', 'https://news.qq.com/'),
-  source('新浪新闻', '', '新', '#e6162d', '新闻', 'dailyhot', 'sina-news', 'https://news.sina.com.cn/'),
+  source('网易新闻', '', '易', '#d81e06', '新闻', 'direct', 'netease-news', 'https://news.163.com/'),
+  source('腾讯新闻', '', '讯', '#1677ff', '新闻', 'direct', 'qq-news', 'https://news.qq.com/'),
+  source('新浪新闻', '', '新', '#e6162d', '新闻', 'direct', 'sina-news', 'https://news.sina.com.cn/'),
+  source('纽约时报中文网', '', '纽', '#000000', '新闻', 'direct', 'nytimes-cn', 'https://m.cn.nytimes.com/'),
 
-  source('IT之家', '', 'IT', '#d71920', '科技', 'newsnow', 'ithome', 'https://www.ithome.com/'),
+  source('IT之家', '', 'IT', '#d71920', '科技', 'direct', 'ithome', 'https://www.ithome.com/'),
   source('cnBeta', '最新资讯', '新', '#1f6fb2', '科技', 'direct', 'cnbeta-latest', 'https://m.cnbeta.com.tw/wap'),
   source('cnBeta', '人气资讯', '热', '#e65a35', '科技', 'direct', 'cnbeta-hot', 'https://m.cnbeta.com.tw/wap/hot.htm'),
   source('cnBeta', '争议资讯', '议', '#8b5cf6', '科技', 'direct', 'cnbeta-argue', 'https://m.cnbeta.com.tw/wap/argue.htm'),
-  source('少数派', '', '少', '#d71920', '科技', 'newsnow', 'sspai', 'https://sspai.com/'),
-  source('爱范儿', '', '范', '#ff4b4b', '科技', 'dailyhot', 'ifanr', 'https://www.ifanr.com/'),
-  source('36氪', '人气榜', '36', '#0b66ff', '科技', 'dailyhot', '36kr', 'https://36kr.com/hot-list/catalog'),
+  source('少数派', '', '少', '#d71920', '科技', 'direct', 'sspai', 'https://sspai.com/'),
+  source('爱范儿', '', '范', '#ff4b4b', '科技', 'direct', 'ifanr', 'https://www.ifanr.com/'),
+  source('36氪', '人气榜', '36', '#0b66ff', '科技', 'direct', '36kr', 'https://36kr.com/hot-list/catalog'),
   source('AI工具集', '每日 AI 资讯', 'AI', '#5b5bd6', '科技', 'direct', 'ai-bot-daily', 'https://ai-bot.cn/daily-ai-news/'),
   source('机器之心', '最新资讯', '机', '#111827', '科技', 'direct', 'ai-media-jiqizhixin', 'https://www.jiqizhixin.com/'),
   source('量子位', '最新资讯', '量', '#1f6feb', '科技', 'direct', 'ai-media-qbitai', 'https://www.qbitai.com/'),
   source('新智元', '最新资讯', '新', '#ed1c24', '科技', 'direct', 'ai-media-aiera', 'https://aiera.com.cn/'),
 
-  source('稀土掘金', '', '掘', '#1e80ff', '开发者', 'newsnow', 'juejin', 'https://juejin.cn/hot/articles'),
-  source('V2EX', '分享', 'V2', '#778087', '开发者', 'newsnow', 'v2ex-share', 'https://www.v2ex.com/?tab=share'),
+  source('稀土掘金', '', '掘', '#1e80ff', '开发者', 'direct', 'juejin', 'https://juejin.cn/hot/articles'),
+  source('V2EX', '分享', 'V2', '#778087', '开发者', 'direct', 'v2ex-share', 'https://www.v2ex.com/?tab=share'),
 
-  source('豆瓣', '新片榜', '豆', '#00a65a', '视频', 'newsnow', 'douban', 'https://movie.douban.com/chart'),
-  source('抖音', '热点', '抖', '#17191c', '视频', 'newsnow', 'douyin', 'https://www.douyin.com/hot'),
-  source('腾讯视频', '影视排行榜', '腾', '#ff6a00', '视频', 'newsnow', 'qqvideo-tv-hotsearch', 'https://v.qq.com/biu/ranks/?t=hotsearch&channel=0'),
-  source('爱奇艺', '热播总榜', '爱', '#00be06', '视频', 'newsnow', 'iqiyi-hot-ranklist', 'https://www.iqiyi.com/ranks1/home'),
+  source('豆瓣', '新片榜', '豆', '#00a65a', '视频', 'direct', 'douban', 'https://movie.douban.com/chart'),
+  source('抖音', '热点', '抖', '#17191c', '视频', 'direct', 'douyin', 'https://www.douyin.com/hot'),
+  source('腾讯视频', '影视排行榜', '腾', '#ff6a00', '视频', 'direct', 'qqvideo-tv-hotsearch', 'https://v.qq.com/biu/ranks/?t=hotsearch&channel=0'),
+  source('爱奇艺', '热播总榜', '爱', '#00be06', '视频', 'direct', 'iqiyi-hot-ranklist', 'https://www.iqiyi.com/ranks1/home'),
   source('红果短剧', '', '红', '#fa7705', '视频', 'direct', 'hongguo-hot', 'https://hongguoduanju.com/category?tab=1'),
-  source('快手', '短视频热榜', '快', '#ff5000', '视频', 'dailyhot', 'kuaishou', 'https://www.kuaishou.com/brilliant'),
+  source('快手', '短视频热榜', '快', '#ff5000', '视频', 'direct', 'kuaishou', 'https://www.kuaishou.com/brilliant'),
   source('猫眼', '今日票房', '猫', '#f03d37', '视频', 'direct', 'maoyan-box-office', 'https://piaofang.maoyan.com/dashboard/movie'),
   source('优酷', '电视剧 · 飙升榜', '酷', '#0073e6', '视频', 'direct', 'youku-tv', 'https://www.youku.com/channel/webtv/list'),
   source('优酷', '电影 · 热度榜', '酷', '#0073e6', '视频', 'direct', 'youku-movie', 'https://www.youku.com/channel/webmovie/list'),
@@ -99,12 +99,17 @@ export const sourceCatalog: PlatformDefinition[] = [
   source('哔哩哔哩', '热歌榜', 'B', '#00aeec', '音乐', 'direct', 'music-bilibili', 'https://music.bilibili.com/pc/rank'),
   source('酷我', '热歌榜', '酷', '#ff7a00', '音乐', 'direct', 'music-kuwo-hot', 'https://www.kuwo.cn/rankList'),
 
-  source('财联社', '', '财', '#d71920', '财经', 'newsnow', 'cls-hot', 'https://www.cls.cn/'),
-  source('华尔街见闻', '', '华', '#1665d8', '财经', 'newsnow', 'wallstreetcn-quick', 'https://wallstreetcn.com/live/global'),
-  source('格隆汇', '', '格', '#2563eb', '财经', 'newsnow', 'gelonghui', 'https://www.gelonghui.com/'),
+  source('财联社', '', '财', '#d71920', '财经', 'direct', 'cls-hot', 'https://www.cls.cn/'),
+  source('华尔街见闻', '', '华', '#1665d8', '财经', 'direct', 'wallstreetcn-quick', 'https://wallstreetcn.com/live/global'),
+  source('格隆汇', '', '格', '#2563eb', '财经', 'direct', 'gelonghui', 'https://www.gelonghui.com/'),
   source('财新网', '', '财', '#b61d22', '财经', 'direct', 'caixin', 'https://www.caixin.com/'),
   source('东方财富', '', '东', '#e02f2f', '财经', 'direct', 'eastmoney', 'https://finance.eastmoney.com/'),
   source('第一财经', '', '一', '#d71920', '财经', 'direct', 'yicai', 'https://www.yicai.com/'),
+
+  source('今日头条', '养生', '养', '#f04438', '健康', 'direct', 'toutiao-regimen', 'https://www.toutiao.com/?channel=regimen&source=tuwen_detail'),
+  source('cnBeta', '科技与健康', '健', '#1f6fb2', '健康', 'direct', 'cnbeta-health', 'https://www.cnbeta.com.tw/topics/697.htm'),
+  source('搜狐', '健康要闻', '狐', '#d71920', '健康', 'direct', 'sohu-health', 'https://www.sohu.com/xtopic/TURBd05EVXpNemt3'),
+  source('网易健康', '健康资讯', '易', '#d81e06', '健康', 'direct', 'netease-health', 'https://jiankang.163.com/'),
 
   source('微信读书', '飙升榜', '飙', '#22a45d', '阅读', 'direct', 'weread-rising', 'https://weread.qq.com/web/category/rising'),
   source('微信读书', '热搜榜', '热', '#22a45d', '阅读', 'direct', 'weread-hot-search', 'https://weread.qq.com/web/category/hot_search'),
@@ -117,8 +122,14 @@ export const sourceCatalog: PlatformDefinition[] = [
   source('番茄小说', '巅峰榜', '番', '#ff5a1f', '阅读', 'direct', 'fanqie-top', 'https://fanqienovel.com/?enter_from=menu'),
   source('起点', '畅销榜', '起', '#e1251b', '阅读', 'direct', 'qidian-hotsales', 'https://www.qidian.com/rank/hotsales/'),
 
-  source('历史上的今天', '', '史', '#8b5e3c', '其他', 'dailyhot', 'history', 'https://baike.baidu.com/calendar/'),
+  source('历史上的今天', '', '史', '#8b5e3c', '其他', 'direct', 'history', 'https://baike.baidu.com/calendar/'),
   source('中国国家地理', '热度榜', '地', '#c8161d', '其他', 'direct', 'dili360-hot', 'https://www.dili360.com/'),
+
+  source('纽约时报中文网', '健康', '纽', '#000000', '健康', 'direct', 'nytimes-cn-health', 'https://m.cn.nytimes.com/health'),
+
+  source('X', '曝光榜', 'X', '#0f1419', '社交', 'direct', 'sopilot-exposure', 'https://sopilot.net/zh/rank/tweets'),
+  source('X', 'AI榜', 'X', '#6366f1', '社交', 'direct', 'sopilot-ai', 'https://sopilot.net/zh/hot-tweets'),
+  source('X', '热点榜', 'X', '#f45d22', '社交', 'direct', 'sopilot-topic', 'https://sopilot.net/zh/rank/topic?range=24h&sort=heat'),
 ];
 
 export const categoryCounts = Object.fromEntries(
@@ -134,11 +145,10 @@ export const categories = [
 ];
 
 export function getSourceDefinition(sourceId: string) {
-  return sourceCatalog.find((item) => item.source === sourceId);
+  const normalized = normalizeSourceId(sourceId);
+  return sourceCatalog.find((item) => item.source === normalized);
 }
 
-export function platformFetchLabel(platform: Pick<PlatformDefinition, 'source' | 'provider'>) {
-  if (OFFICIAL_SOURCE_IDS.has(platform.source) || platform.provider === 'direct') return '本站直连';
-  if (platform.provider === 'newsnow') return 'NewsNow';
-  return 'DailyHot';
+export function normalizeSourceId(sourceId: string) {
+  return sourceId.replace(/^(?:newsnow|dailyhot|helti):/, 'direct:');
 }

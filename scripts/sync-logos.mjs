@@ -19,111 +19,6 @@ const entries = [...catalog.matchAll(/source\('([^']+)',\s*'[^']*',\s*'[^']*',\s
     siteUrl: match[4],
   }));
 
-const newsnowBase = 'https://raw.githubusercontent.com/ourongxing/newsnow/main/public/icons';
-const newsnowLiveBase = 'https://newsnow.busiyi.world/icons';
-
-const newsnowIconMap = {
-  'bilibili-hot-search': 'bilibili',
-  'chongbuluo-hot': 'chongbuluo',
-  'cls-hot': 'cls',
-  'fastbull-express': 'fastbull',
-  gelonghui: 'gelonghui',
-  'github-trending-today': 'github',
-  'iqiyi-hot-ranklist': 'iqiyi',
-  'mktnews-flash': 'mktnews',
-  'pcbeta-windows11': 'pcbeta',
-  'qqvideo-tv-hotsearch': 'qqvideo',
-  sputniknewscn: 'sputniknewscn',
-  'v2ex-share': 'v2ex',
-  'wallstreetcn-quick': 'wallstreetcn',
-  'xueqiu-hotstock': 'xueqiu',
-  douban: 'douban',
-  'foreign-aljazeera': 'aljazeeracn',
-};
-
-const dailyhotIconMap = {
-  '36kr': '36kr',
-  acfun: 'acfun',
-  '51cto': 'ghxi',
-  '52pojie': 'default',
-  csdn: 'default',
-  'douban-group': 'douban',
-  dgtle: 'default',
-  geekpark: 'default',
-  guokr: 'default',
-  hellogithub: 'hellogithub',
-  history: 'default',
-  honkai: 'honkai',
-  huxiu: 'default',
-  ifanr: 'default',
-  'ithome-xijiayi': 'ithome',
-  kuaishou: 'kuaishou',
-  lol: 'default',
-  miyoushe: 'genshin',
-  'netease-news': 'default',
-  ngabbs: 'default',
-  nodeseek: 'linuxdo',
-  nytimes: 'default',
-  'qq-news': 'tencent',
-  'sina-news': 'default',
-  sina: 'default',
-  smzdm: 'smzdm',
-  starrail: 'starrail',
-  weatheralarm: 'default',
-  yystv: 'default',
-};
-
-const directIconMap = {
-  'cnbeta-latest': 'default',
-  'cnbeta-hot': 'default',
-  'cnbeta-argue': 'default',
-  jianshu: 'jianshu',
-  'zhihu-daily': 'zhihu',
-  'douban-hot-movie': 'douban',
-  'douban-hot-tv': 'douban',
-  'douban-book-chart': 'douban',
-  'fanqie-top': 'default',
-  'youku-ranking': 'default',
-  'music-netease-hot': 'default',
-  'music-qq-hot': 'tencent',
-  'music-kugou-top500': 'default',
-  'music-bilibili': 'bilibili',
-  'music-kuwo-hot': 'default',
-  'weread-rising': 'weread',
-  'weread-hot-search': 'weread',
-  'weread-newbook': 'weread',
-  'weread-novel': 'weread',
-  'weread-all': 'weread',
-  'weread-masterpiece': 'weread',
-  'weread-potential': 'weread',
-  'foreign-google-trends': 'default',
-  'foreign-google-news': 'default',
-  'foreign-bbc-world': 'default',
-  'foreign-guardian-world': 'default',
-  'foreign-npr-news': 'default',
-  'foreign-techmeme': 'default',
-  'foreign-theverge': 'default',
-  'foreign-arstechnica': 'default',
-  'foreign-techcrunch': 'default',
-  'foreign-lobsters': 'default',
-  'foreign-stackoverflow': 'default',
-  'foreign-coingecko': 'default',
-  caixin: 'default',
-  eastmoney: 'default',
-  'eastmoney-stock': 'xueqiu',
-  jd: 'default',
-  taobao: 'default',
-  tonghuashun: 'default',
-  yicai: 'default',
-};
-
-function resolveNewsnowIconId(provider, upstreamId) {
-  if (provider === 'newsnow') return newsnowIconMap[upstreamId] ?? upstreamId;
-  if (provider === 'dailyhot') return dailyhotIconMap[upstreamId] ?? upstreamId;
-  if (provider === 'direct') return directIconMap[upstreamId] ?? upstreamId;
-  return upstreamId;
-}
-
 function logoFilename(entry) {
   return `${entry.provider}-${entry.upstreamId.replace(/[^a-z0-9-]/gi, '-')}.png`;
 }
@@ -348,74 +243,21 @@ async function fetchIconFromSite(entry) {
   }
 }
 
-async function fetchIconFromNewsnow(entry) {
-  const iconId = resolveNewsnowIconId(entry.provider, entry.upstreamId);
-  const urls = [
-    `${newsnowBase}/${iconId}.png`,
-    `${newsnowLiveBase}/${iconId}.png`,
-  ];
-
-  for (const url of urls) {
-    try {
-      const { buffer, finalUrl } = await fetchBuffer(url);
-      const kind = detectKind(buffer, 'image/png', finalUrl);
-      await sharp(buffer).metadata();
-      return { buffer, kind, finalUrl, candidate: url, strategy: 'newsnow', iconId };
-    } catch {
-      // try next mirror
-    }
-  }
-
-  throw new Error(`NewsNow icon unavailable for ${iconId}`);
-}
-
 async function syncEntry(entry) {
   const filename = logoFilename(entry);
   const dest = path.join(logosDir, filename);
   let result;
-  let siteError = '';
 
   try {
     result = await fetchIconFromSite(entry);
   } catch (error) {
-    siteError = String(error);
-    try {
-      result = await fetchIconFromNewsnow(entry);
-    } catch (fallbackError) {
-      return {
-        ...entry,
-        filename,
-        saved: 'FAILED',
-        error: `${siteError}; fallback: ${fallbackError}`,
-      };
-    }
+    return { ...entry, filename, saved: 'FAILED', error: String(error) };
   }
 
   try {
     await saveAsLogoPng(result.buffer, result.kind, dest);
   } catch (error) {
-    try {
-      const fallback = await fetchIconFromNewsnow(entry);
-      await saveAsLogoPng(fallback.buffer, fallback.kind, dest);
-      const stat = fs.statSync(dest);
-      return {
-        ...entry,
-        filename,
-        saved: dest,
-        strategy: 'newsnow',
-        sourceUrl: fallback.finalUrl,
-        kind: fallback.kind,
-        size: stat.size,
-        siteError: `${siteError}; convert: ${error}`,
-      };
-    } catch (fallbackError) {
-      return {
-        ...entry,
-        filename,
-        saved: 'FAILED',
-        error: `${siteError}; convert: ${error}; fallback: ${fallbackError}`,
-      };
-    }
+    return { ...entry, filename, saved: 'FAILED', error: String(error) };
   }
 
   const stat = fs.statSync(dest);
@@ -427,7 +269,6 @@ async function syncEntry(entry) {
     sourceUrl: result.finalUrl,
     kind: result.kind,
     size: stat.size,
-    siteError: siteError || undefined,
   };
 }
 
@@ -451,8 +292,7 @@ fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
 
 const ok = results.filter((item) => item.saved !== 'FAILED');
 const fromSite = ok.filter((item) => item.strategy?.startsWith('site')).length;
-const fromNewsnow = ok.filter((item) => item.strategy === 'newsnow').length;
 
-console.log(`Synced ${ok.length}/${results.length} logos (${fromSite} from sites, ${fromNewsnow} from NewsNow fallback)`);
+console.log(`Synced ${ok.length}/${results.length} logos (${fromSite} from source sites)`);
 console.log('Failed:', results.filter((item) => item.saved === 'FAILED').map((item) => item.name).join(', ') || 'none');
 console.log('Report:', reportPath);

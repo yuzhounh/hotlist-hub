@@ -1,5 +1,4 @@
 import { createHash } from 'node:crypto';
-import { OFFICIAL_SOURCE_IDS } from '../../official-source-ids';
 import {
   decodeHtml,
   fetchJson,
@@ -50,7 +49,7 @@ async function fetchTiebaHot(): Promise<HotResult> {
   );
   const items = (data.data?.bang_topic?.topic_list ?? []).flatMap((entry) => entry.topic_name && entry.topic_id ? [{
     id: entry.topic_id,
-    title: entry.topic_name.replace(/,/g, '，'),
+    title: entry.topic_name.replace(/,/g, '，').replace(/!/g, '！'),
     url: `https://tieba.baidu.com/hottopic/browse/hottopic?topic_id=${entry.topic_id}`,
     extra: entry.discuss_num ? { info: String(entry.discuss_num) } : undefined,
   }] : []);
@@ -91,7 +90,7 @@ async function fetchBaiduHot(): Promise<HotResult> {
   const items = (data.data?.cards ?? []).flatMap((card) => flatten(card.content)).flatMap((entry) => {
     const rawTitle = entry.word || entry.desc;
     if (!rawTitle) return [];
-    const title = rawTitle.replace(/\s+/g, '，');
+    const title = rawTitle.replace(/\s+/g, '，').replace(/!/g, '！');
     const hotScore = Number(entry.hotScore);
     return [{
       id: title,
@@ -270,6 +269,120 @@ async function fetchSinaRoll(lid: string): Promise<HotResult> {
   return { updatedTime: Date.now(), items };
 }
 
+async function fetchToutiaoRegimen(): Promise<HotResult> {
+  const pageUrl = `https://www.toutiao.com/?channel=regimen&source=tuwen_detail&wid=${Date.now()}`;
+  const html = await fetchText(pageUrl, 'https://www.toutiao.com/', 'text/html,application/xhtml+xml');
+  const seen = new Set<string>();
+  const items: UnifiedItem[] = [];
+
+  const addItem = (id: string, titleHtml: string) => {
+    const title = decodeHtml(titleHtml);
+    if (!title || title.length < 4 || title === '侵权举报受理公示' || seen.has(id)) return;
+    seen.add(id);
+    items.push({
+      id,
+      title,
+      url: `https://www.toutiao.com/article/${id}/`,
+    });
+  };
+
+  for (const match of html.matchAll(/<a[^>]+href=["'](\/article\/(\d+)\/)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
+    addItem(match[2], match[3]);
+    if (items.length >= 30) break;
+  }
+
+  type RegimenFeed = {
+    data?: Array<{ group_id?: string | number; item_id?: string | number; title?: string }>;
+    has_more?: boolean;
+    next?: { max_behot_time?: string | number };
+  };
+  let cursor: string | number = 0;
+  try {
+    for (let page = 0; page < 6 && items.length < 30; page += 1) {
+      const data = await fetchJson<RegimenFeed>(
+        `https://www.toutiao.com/api/pc/feed/?category=news_regimen&utm_source=toutiao&max_behot_time=${cursor}`,
+        pageUrl,
+      );
+      for (const entry of data.data ?? []) {
+        const id = String(entry.group_id ?? entry.item_id ?? '');
+        if (id && entry.title) addItem(id, entry.title);
+        if (items.length >= 30) break;
+      }
+      const nextCursor = data.next?.max_behot_time;
+      if (!data.has_more || nextCursor === undefined || String(nextCursor) === String(cursor)) break;
+      cursor = nextCursor;
+    }
+  } catch (error) {
+    console.warn('[hot] Toutiao regimen pagination unavailable; using initial page', error);
+  }
+
+  return { updatedTime: Date.now(), items };
+}
+
+function normalizeSohuHealthTitle(title: string) {
+  return title.replace(/^[^|｜]+\s*[|｜]\s*/, '').trim();
+}
+
+async function fetchSohuHealth(): Promise<HotResult> {
+  const requestId = `hotlist_${Date.now()}`;
+  const componentKey = 'TPLFeed_1_1_pc_1644567115421';
+  const data = await fetchJson<{
+    data?: Record<string, {
+      list?: Array<{ id?: string | number; title?: string; url?: string }>;
+    }>;
+  }>(
+    'https://odin.sohu.com/odin/api/blockdata',
+    'https://www.sohu.com/xtopic/TURBd05EVXpNemt3',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+      body: JSON.stringify({
+        pvId: requestId,
+        pageId: requestId,
+        mainContent: {
+          productId: 453390,
+          productType: 15,
+          categoryId: 24,
+          innerTag: 'topic',
+          secureScore: 100,
+          bizCode: 4,
+          adTags: '11111111',
+        },
+        resourceList: [{
+          tplCompKey: componentKey,
+          isServerRender: false,
+          isSingleAd: false,
+          content: {
+            requestId,
+            spm: 'smpc.channel_218.block2_218_84Noj1_1_fd',
+            productType: 15,
+            productId: 453390,
+            page: 1,
+            size: 30,
+            pro: '0,1',
+            innerTag: 'topic',
+            feedType: 'XTOPIC_SYNTHETICAL',
+            view: '',
+          },
+          adInfo: { posCode: '' },
+          context: {},
+        }],
+      }),
+    },
+  );
+  const items = (data.data?.[componentKey]?.list ?? []).flatMap((entry) => {
+    if (!entry.title || !entry.url) return [];
+    const parsedUrl = new URL(entry.url, 'https://www.sohu.com');
+    const url = `${parsedUrl.origin}${parsedUrl.pathname}`;
+    return [{
+      id: entry.id ?? url,
+      title: normalizeSohuHealthTitle(decodeHtml(entry.title)),
+      url,
+    }];
+  }).slice(0, 30);
+  return { updatedTime: Date.now(), items };
+}
+
 async function fetchHtmlAnchors(url: string, referer: string, pattern: RegExp, mapUrl: (href: string) => string, limit = 30): Promise<HotResult> {
   const html = await fetchText(url, referer, 'text/html,application/xhtml+xml');
   const seen = new Set<string>();
@@ -281,6 +394,147 @@ async function fetchHtmlAnchors(url: string, referer: string, pattern: RegExp, m
     if (!title || title.length < 4 || seen.has(href)) continue;
     seen.add(href);
     items.push({ id: href, title, url: href });
+  }
+  return { updatedTime: Date.now(), items };
+}
+
+function normalizeNeteaseHealthTitle(title: string) {
+  return title
+    .replace(/^[•·●▪‧]\s*/, '')
+    .replace(/^【[^】]+】\s*[：:]\s*/, '')
+    .trim();
+}
+
+async function fetchNeteaseHealth(): Promise<HotResult> {
+  const result = await fetchHtmlAnchors(
+    'https://jiankang.163.com/',
+    'https://jiankang.163.com/',
+    /href=["'](https:\/\/www\.163\.com\/(?:dy\/|jiankang\/)?article\/[^"'?]+\.html(?:\?[^"']*)?)["'][^>]*>([\s\S]*?)<\/a>/gi,
+    (href) => href,
+  );
+  return {
+    ...result,
+    items: result.items.map((item) => ({
+      ...item,
+      title: normalizeNeteaseHealthTitle(item.title),
+    })),
+  };
+}
+
+function normalizeNytimesCnArticleUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== 'cn.nytimes.com') return '';
+    const path = parsed.pathname.replace(/\/$/, '');
+    if (!/^\/[^/]+\/\d{8}\/.+/.test(path)) return '';
+    return `https://cn.nytimes.com${path}/`;
+  } catch {
+    return '';
+  }
+}
+
+function parseNytimesCnArticleItems(
+  html: string,
+  seen: Set<string>,
+  items: UnifiedItem[],
+  limit: number,
+) {
+  for (const match of html.matchAll(/<a href="([^"]+)"[^>]*>[\s\S]*?<h2><span>([\s\S]*?)<\/span><\/h2>/gi)) {
+    if (items.length >= limit) break;
+    let href = decodeHtml(match[1]);
+    if (href.startsWith('/')) href = `https://cn.nytimes.com${href}`;
+    const normalized = normalizeNytimesCnArticleUrl(href);
+    if (!normalized) continue;
+    const title = decodeHtml(match[2]);
+    if (!title || title.length < 4 || seen.has(normalized)) continue;
+    seen.add(normalized);
+    items.push({ id: normalized, title, url: normalized });
+  }
+}
+
+function parseNytimesCnSectionItems(
+  html: string,
+  section: string,
+  seen: Set<string>,
+  items: UnifiedItem[],
+  limit: number,
+) {
+  const prefix = `https://cn.nytimes.com/${section}/`;
+  for (const match of html.matchAll(/<a href="([^"]+)"[^>]*>[\s\S]*?<h2><span>([\s\S]*?)<\/span><\/h2>/gi)) {
+    if (items.length >= limit) break;
+    let href = decodeHtml(match[1]);
+    if (href.startsWith('/')) href = `https://cn.nytimes.com${href}`;
+    if (!href.startsWith(prefix)) continue;
+    const normalized = normalizeNytimesCnArticleUrl(href);
+    if (!normalized) continue;
+    const title = decodeHtml(match[2]);
+    if (!title || title.length < 4 || seen.has(normalized)) continue;
+    seen.add(normalized);
+    items.push({ id: normalized, title, url: normalized });
+  }
+}
+
+function parseNytimesCnDesktopItems(
+  html: string,
+  seen: Set<string>,
+  items: UnifiedItem[],
+  limit: number,
+) {
+  for (const match of html.matchAll(/<a[^>]+href="(\/[^"]+\/\d{8}\/[^"]+)"[^>]*title="([^"]+)"/gi)) {
+    if (items.length >= limit) break;
+    const normalized = normalizeNytimesCnArticleUrl(`https://cn.nytimes.com${decodeHtml(match[1])}`);
+    if (!normalized) continue;
+    const title = decodeHtml(match[2]);
+    if (!title || title.length < 4 || seen.has(normalized)) continue;
+    seen.add(normalized);
+    items.push({ id: normalized, title, url: normalized });
+  }
+}
+
+async function fetchNytimesCnHomepage(limit = 30): Promise<HotResult> {
+  const seen = new Set<string>();
+  const items: UnifiedItem[] = [];
+  const mobileHtml = await fetchText('https://m.cn.nytimes.com/', 'https://m.cn.nytimes.com/', 'text/html,application/xhtml+xml');
+  parseNytimesCnArticleItems(mobileHtml, seen, items, limit);
+  if (items.length < limit) {
+    const desktopHtml = await fetchText('https://cn.nytimes.com/', 'https://cn.nytimes.com/', 'text/html,application/xhtml+xml');
+    parseNytimesCnDesktopItems(desktopHtml, seen, items, limit);
+  }
+  if (items.length < limit) {
+    const xml = await fetchText(
+      'https://cn.nytimes.com/rss/',
+      'https://cn.nytimes.com/',
+      'application/rss+xml, application/xml, text/xml, */*',
+    );
+    for (const feedItem of parseFeed(xml)) {
+      if (items.length >= limit) break;
+      const normalized = normalizeNytimesCnArticleUrl(feedItem.url);
+      if (!normalized || !feedItem.title || seen.has(normalized)) continue;
+      seen.add(normalized);
+      items.push({ id: normalized, title: feedItem.title, url: normalized });
+    }
+  }
+  return { updatedTime: Date.now(), items };
+}
+
+async function fetchNytimesCnSection(section: string, limit = 30): Promise<HotResult> {
+  const referer = 'https://m.cn.nytimes.com/';
+  const seen = new Set<string>();
+  const items: UnifiedItem[] = [];
+  const firstHtml = await fetchText(`https://m.cn.nytimes.com/${section}`, referer, 'text/html,application/xhtml+xml');
+  parseNytimesCnSectionItems(firstHtml, section, seen, items, limit);
+  let page = 2;
+  while (items.length < limit) {
+    const moreHtml = await fetchText(
+      `https://m.cn.nytimes.com/viewmore/${section}/${page}/20`,
+      referer,
+      'text/html,application/xhtml+xml',
+    );
+    if (!moreHtml.trim()) break;
+    const before = items.length;
+    parseNytimesCnSectionItems(moreHtml, section, seen, items, limit);
+    if (items.length === before) break;
+    page += 1;
   }
   return { updatedTime: Date.now(), items };
 }
@@ -304,7 +558,7 @@ async function fetchJin10Flash(): Promise<HotResult> {
   return { updatedTime: Date.now(), items };
 }
 
-// ===== 26 platforms migrated from third-party (NewsNow/DailyHot) to direct =====
+// Direct fetchers for sources that previously used aggregation services.
 
 // A. Pure JSON API fetchers
 
@@ -359,47 +613,28 @@ async function fetch36kr(): Promise<HotResult> {
     itemId?: string;
     templateMaterial?: { widgetTitle?: string; statRead?: number };
   };
-  try {
-    // Must use POST (GET returns an error response).
-    const data = await fetchJson<{ data?: { hotRankList?: OfficialEntry[] } }>(
-      'https://gateway.36kr.com/api/mis/nav/home/nav/rank/hot',
-      'https://www.36kr.com/',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json; charset=utf-8' },
-        body: JSON.stringify({ partner_id: 'wap', param: { siteId: 1, platformId: 2 }, timestamp: Date.now() }),
-      },
-    );
-    const items = (data.data?.hotRankList ?? []).flatMap((entry) => {
-      const title = entry.templateMaterial?.widgetTitle;
-      if (!title || !entry.itemId) return [];
-      return [{
-        id: entry.itemId,
-        title,
-        url: `https://www.36kr.com/p/${entry.itemId}`,
-        mobileUrl: `https://m.36kr.com/p/${entry.itemId}`,
-        extra: entry.templateMaterial?.statRead ? { info: String(entry.templateMaterial.statRead) } : undefined,
-      }];
-    });
-    if (items.length) return { updatedTime: Date.now(), items };
-  } catch {
-    // Some edge runtimes cannot keep a connection to the official gateway.
-  }
-
-  const fallback = await fetchJson<{
-    updateTime?: number | string;
-    data?: Array<{ id?: string | number; title?: string; url?: string; mobileUrl?: string }>;
-  }>('https://daily-hot-for-ai.vercel.app/api/36kr', 'https://www.36kr.com/');
-  const items = (fallback.data ?? []).flatMap((entry) => {
-    if (!entry.id || !entry.title || !entry.url) return [];
+  // Must use POST (GET returns an error response).
+  const data = await fetchJson<{ data?: { hotRankList?: OfficialEntry[] } }>(
+    'https://gateway.36kr.com/api/mis/nav/home/nav/rank/hot',
+    'https://www.36kr.com/',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({ partner_id: 'wap', param: { siteId: 1, platformId: 2 }, timestamp: Date.now() }),
+    },
+  );
+  const items = (data.data?.hotRankList ?? []).flatMap((entry) => {
+    const title = entry.templateMaterial?.widgetTitle;
+    if (!title || !entry.itemId) return [];
     return [{
-      id: entry.id,
-      title: entry.title,
-      url: entry.url,
-      mobileUrl: entry.mobileUrl,
+      id: entry.itemId,
+      title,
+      url: `https://www.36kr.com/p/${entry.itemId}`,
+      mobileUrl: `https://m.36kr.com/p/${entry.itemId}`,
+      extra: entry.templateMaterial?.statRead ? { info: String(entry.templateMaterial.statRead) } : undefined,
     }];
   });
-  return { updatedTime: fallback.updateTime ?? Date.now(), items };
+  return { updatedTime: Date.now(), items };
 }
 
 function pad2(n: number) {
@@ -812,74 +1047,253 @@ async function fetchKaopu(): Promise<HotResult> {
   return { updatedTime: Date.now(), items };
 }
 
+// SoPilot (X/Twitter analytics) — Next.js App Router pages embed ranking data
+// inside RSC payloads as `self.__next_f.push([1,"..."])` chunks. The helpers
+// below decode that stream and split a named array into top-level JSON objects,
+// which we then read field-by-field (the stream itself is not directly JSON-
+// parseable because of React's `$` reference/Date markers).
+
+function decodeNextRscPayload(html: string): string {
+  const chunks = Array.from(html.matchAll(/self\.__next_f\.push\(\[1,"((?:[^"\\]|\\.)*)"\]\)/g)).map((match) => match[1]);
+  let decoded = '';
+  for (const chunk of chunks) {
+    try {
+      decoded += JSON.parse(`"${chunk}"`);
+    } catch {
+      decoded += chunk;
+    }
+  }
+  return decoded;
+}
+
+/** Split a top-level RSC array (e.g. `"risingTweets":[...]`) into its element objects. */
+function splitRscArray(payload: string, key: string): string[] {
+  const marker = `"${key}":[`;
+  const start = payload.indexOf(marker);
+  if (start === -1) return [];
+  const elements: string[] = [];
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let elementStart = -1;
+  for (let index = start + marker.length; index < payload.length; index += 1) {
+    const char = payload[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === '{' || char === '[') {
+      if (depth === 0 && char === '{') elementStart = index;
+      depth += 1;
+    } else if (char === '}' || char === ']') {
+      depth -= 1;
+      if (depth === 0) {
+        if (elementStart !== -1) {
+          elements.push(payload.slice(elementStart, index + 1));
+          elementStart = -1;
+        } else if (char === ']') {
+          break;
+        }
+      }
+    }
+  }
+  return elements;
+}
+
+function rscStringField(obj: string, field: string): string | undefined {
+  const match = obj.match(new RegExp(`"${field}":"((?:[^"\\\\]|\\\\.)*)"`, 'm'));
+  if (!match) return undefined;
+  try {
+    return JSON.parse(`"${match[1]}"`);
+  } catch {
+    return match[1];
+  }
+}
+
+function rscNumberField(obj: string, field: string): number | undefined {
+  const match = obj.match(new RegExp(`"${field}":(-?\\d+(?:\\.\\d+)?)`));
+  return match ? Number(match[1]) : undefined;
+}
+
+function compactTitle(text: string | undefined, limit = 140): string {
+  const collapsed = decodeHtml(text ?? '').replace(/\s+/g, ' ').trim();
+  if (collapsed.length <= limit) return collapsed;
+  return `${collapsed.slice(0, limit)}…`;
+}
+
+async function fetchSopilotRsc(path: string): Promise<string> {
+  const html = await fetchText(`https://sopilot.net${path}`, 'https://sopilot.net/', 'text/html,application/xhtml+xml');
+  return decodeNextRscPayload(html);
+}
+
+function formatCount(value: number | undefined): string | undefined {
+  if (value === undefined || !Number.isFinite(value)) return undefined;
+  if (value >= 10000) return `${(value / 10000).toFixed(value >= 100000 ? 0 : 1)}万`;
+  return String(Math.round(value));
+}
+
+// The exposure list lives on /zh/rank/tweets; cache the decoded payload briefly
+// so repeat fetches within a minute don't refetch the same HTML.
+let sopilotTweetsCache: { payload: string; ts: number } | null = null;
+
+async function loadSopilotTweetsPayload(): Promise<string> {
+  const now = Date.now();
+  if (sopilotTweetsCache && now - sopilotTweetsCache.ts < 60_000) {
+    return sopilotTweetsCache.payload;
+  }
+  const payload = await fetchSopilotRsc('/zh/rank/tweets');
+  sopilotTweetsCache = { payload, ts: now };
+  return payload;
+}
+
+function mapSopilotTweet(obj: string): UnifiedItem | null {
+  const id = rscStringField(obj, 'id');
+  const text = rscStringField(obj, 'text');
+  const url = rscStringField(obj, 'sourceUrl');
+  if (!id || !text || !url) return null;
+  const title = compactTitle(text);
+  if (!title) return null;
+  const byline = rscStringField(obj, 'authorName');
+  const heatScore = rscNumberField(obj, 'heatScore');
+  const views = rscNumberField(obj, 'viewsCount');
+  const info = heatScore !== undefined
+    ? `热度 ${formatCount(heatScore)}`
+    : views !== undefined
+      ? `${formatCount(views)} 浏览`
+      : undefined;
+  return { id, title, byline, url, extra: info ? { info } : undefined };
+}
+
+async function fetchSopilotExposure(): Promise<HotResult> {
+  const payload = await loadSopilotTweetsPayload();
+  const items = splitRscArray(payload, 'hotTweets')
+    .map((obj) => mapSopilotTweet(obj))
+    .filter((item): item is UnifiedItem => item !== null)
+    .slice(0, 30);
+  return { updatedTime: Date.now(), items };
+}
+
+async function fetchSopilotAi(): Promise<HotResult> {
+  const payload = await fetchSopilotRsc('/zh/hot-tweets');
+  const items = splitRscArray(payload, 'initialTweets').map((obj) => {
+    const id = rscStringField(obj, 'tweet_id');
+    const text = rscStringField(obj, 'text');
+    const screenName = rscStringField(obj, 'screen_name');
+    if (!id || !text || !screenName) return null;
+    const title = compactTitle(text);
+    if (!title) return null;
+    const url = `https://x.com/${screenName}/status/${id}`;
+    const byline = rscStringField(obj, 'nickname');
+    const viralScore = rscNumberField(obj, 'viral_score');
+    const views = rscNumberField(obj, 'views');
+    const info = viralScore !== undefined
+      ? `AI 爆发 ${viralScore}`
+      : views !== undefined
+        ? `${formatCount(views)} 浏览`
+        : undefined;
+    return { id, title, byline, url, extra: info ? { info } : undefined } as UnifiedItem;
+  }).filter((item): item is UnifiedItem => item !== null).slice(0, 30);
+  return { updatedTime: Date.now(), items };
+}
+
+async function fetchSopilotTopic(): Promise<HotResult> {
+  const payload = await fetchSopilotRsc('/zh/rank/topic?range=24h&sort=heat');
+  const items = splitRscArray(payload, 'topics').map((obj) => {
+    const slug = rscStringField(obj, 'slug');
+    const title = rscStringField(obj, 'title');
+    if (!slug || !title) return null;
+    const url = `https://sopilot.net/zh/rank/topic/${slug}`;
+    const heatScore = rscNumberField(obj, 'heatScore');
+    const tweetCount = rscNumberField(obj, 'tweetCount');
+    const info = heatScore !== undefined
+      ? `热度 ${formatCount(heatScore)}`
+      : tweetCount !== undefined
+        ? `${tweetCount} 推文`
+        : undefined;
+    return { id: slug, title, url, extra: info ? { info } : undefined } as UnifiedItem;
+  }).filter((item): item is UnifiedItem => item !== null).slice(0, 30);
+  return { updatedTime: Date.now(), items };
+}
+
 export const officialFetchers: Record<string, () => Promise<HotResult>> = {
-  'newsnow:weibo': fetchWeiboHot,
-  'newsnow:zhihu': fetchZhihuHot,
-  'newsnow:tieba': fetchTiebaHot,
-  'newsnow:douban': fetchDoubanChart,
-  'newsnow:baidu': fetchBaiduHot,
-  'newsnow:ithome': () => fetchFeedHot('https://www.ithome.com/rss/', 'https://www.ithome.com/'),
-  'newsnow:solidot': () => fetchFeedHot('https://www.solidot.org/index.rss', 'https://www.solidot.org/'),
-  'newsnow:hackernews': fetchHackerNews,
-  'newsnow:juejin': fetchJuejinHot,
-  'newsnow:bilibili-hot-search': fetchBilibiliHotSearch,
-  'newsnow:wallstreetcn-quick': fetchWallstreetcnQuick,
-  'newsnow:thepaper': fetchThepaperHot,
-  'newsnow:sspai': fetchSspaiHot,
-  'newsnow:v2ex-share': fetchV2exHot,
-  'newsnow:iqiyi-hot-ranklist': fetchIqiyiHot,
-  'newsnow:toutiao': fetchToutiaoHot,
-  'newsnow:jin10': fetchJin10Flash,
-  'newsnow:github-trending-today': fetchGithubTrending,
-  'newsnow:producthunt': () => fetchFeedHot('https://www.producthunt.com/feed', 'https://www.producthunt.com/'),
-  'newsnow:sputniknewscn': () => fetchFeedHot('https://sputniknews.cn/export/rss2/archive/index.xml', 'https://sputniknews.cn/'),
-  'newsnow:zaobao': () => fetchHtmlAnchors('https://www.zaobao.com.sg/realtime/china', 'https://www.zaobao.com/', /href="(\/realtime\/china\/story[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => `https://www.zaobao.com.sg${href}`),
-  'newsnow:hupu': () => fetchHtmlAnchors('https://bbs.hupu.com/all-gambia', 'https://bbs.hupu.com/', /href="(\/[^"]+\.html)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => `https://bbs.hupu.com${href}`),
-  'newsnow:nowcoder': () => fetchHtmlAnchors('https://www.nowcoder.com/', 'https://www.nowcoder.com/', /href="(\/discuss\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => `https://www.nowcoder.com${href}`),
-  'newsnow:steam': () => fetchHtmlAnchors('https://store.steampowered.com/stats/stats/?l=schinese', 'https://store.steampowered.com/', /href="(https:\/\/store\.steampowered\.com\/app\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
-  'newsnow:chongbuluo-hot': () => fetchHtmlAnchors('https://www.chongbuluo.com/forum.php?mod=guide&view=hot', 'https://www.chongbuluo.com/', /href="(forum\.php\?mod=viewthread[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => `https://www.chongbuluo.com/${href}`),
-  'newsnow:aihot': () => fetchHtmlAnchors('https://aihot.virxact.com/all', 'https://aihot.virxact.com/', /href="(https?:\/\/[^"]+)"[^>]*target="_blank"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
-  'dailyhot:acfun': fetchAcfunHot,
-  'dailyhot:dgtle': () => fetchHtmlAnchors('https://www.dgtle.com/', 'https://www.dgtle.com/', /href="(https:\/\/www\.dgtle\.com\/article-[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
-  'dailyhot:douban-group': () => fetchHtmlAnchors('https://www.douban.com/group/explore', 'https://www.douban.com/', /href="(https:\/\/www\.douban\.com\/group\/topic\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
-  'dailyhot:geekpark': () => fetchFeedHot('https://www.geekpark.net/rss', 'https://www.geekpark.net/'),
-  'dailyhot:guokr': () => fetchHtmlAnchors('https://www.guokr.com/', 'https://www.guokr.com/', /href="(https:\/\/www\.guokr\.com\/article\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
-  'dailyhot:hellogithub': fetchHelloGithub,
-  'dailyhot:ifanr': () => fetchFeedHot('https://www.ifanr.com/feed', 'https://www.ifanr.com/'),
-  'dailyhot:ithome-xijiayi': () => fetchHtmlAnchors('https://www.ithome.com/tag/xijiayi/', 'https://www.ithome.com/', /href="(https:\/\/www\.ithome\.com\/[^"]+)"[^>]*class="title"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
-  'dailyhot:ngabbs': () => fetchHtmlAnchors('https://ngabbs.com/', 'https://bbs.nga.cn/', /href="\/read\.php\?tid=(\d+)"[^>]*>([\s\S]*?)<\/a>/gi, (tid) => `https://ngabbs.com/read.php?tid=${tid}`),
-  'dailyhot:nytimes': () => fetchFeedHot('https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml', 'https://www.nytimes.com/'),
-  'dailyhot:sina-news': () => fetchSinaRoll('2509'),
-  // ===== 26 platforms migrated from third-party (NewsNow/DailyHot) to direct =====
-  'newsnow:douyin': fetchDouyinHot,
-  'newsnow:cls-hot': fetchClsHot,
-  'newsnow:dongqiudi': fetchDongqiudi,
-  'newsnow:cankaoxiaoxi': fetchCankaoxiaoxi,
-  'newsnow:ifeng': fetchIfeng,
-  'newsnow:kaopu': fetchKaopu,
-  'newsnow:coolapk': fetchCoolapk,
-  'newsnow:pcbeta-windows11': fetchPcbeta,
-  'newsnow:qqvideo-tv-hotsearch': fetchQqVideoHot,
-  'newsnow:gelonghui': fetchGelonghui,
-  'dailyhot:36kr': fetch36kr,
-  'dailyhot:51cto': fetch51cto,
-  'dailyhot:history': fetchHistoryToday,
-  'dailyhot:honkai': () => fetchMiyousheNews(1, 'bh3'),
-  'dailyhot:huxiu': fetchHuxiu,
-  'dailyhot:kuaishou': fetchKuaishou,
-  'dailyhot:lol': fetchLol,
-  'dailyhot:miyoushe': () => fetchMiyousheNews(2, 'ys'),
-  'dailyhot:netease-news': fetchNeteaseNews,
-  'dailyhot:nodeseek': () => fetchFeedHot('https://rss.nodeseek.com/', 'https://www.nodeseek.com/'),
-  'dailyhot:qq-news': fetchQqNews,
-  'dailyhot:smzdm': fetchSmzdm,
-  'dailyhot:starrail': () => fetchMiyousheNews(6, 'sr'),
-  'dailyhot:weatheralarm': fetchWeatheralarm,
-  'dailyhot:yystv': fetchYystv,
+  'direct:weibo': fetchWeiboHot,
+  'direct:zhihu': fetchZhihuHot,
+  'direct:tieba': fetchTiebaHot,
+  'direct:douban': fetchDoubanChart,
+  'direct:baidu': fetchBaiduHot,
+  'direct:ithome': () => fetchFeedHot('https://www.ithome.com/rss/', 'https://www.ithome.com/'),
+  'direct:solidot': () => fetchFeedHot('https://www.solidot.org/index.rss', 'https://www.solidot.org/'),
+  'direct:hackernews': fetchHackerNews,
+  'direct:juejin': fetchJuejinHot,
+  'direct:bilibili-hot-search': fetchBilibiliHotSearch,
+  'direct:wallstreetcn-quick': fetchWallstreetcnQuick,
+  'direct:thepaper': fetchThepaperHot,
+  'direct:sspai': fetchSspaiHot,
+  'direct:v2ex-share': fetchV2exHot,
+  'direct:iqiyi-hot-ranklist': fetchIqiyiHot,
+  'direct:toutiao': fetchToutiaoHot,
+  'direct:toutiao-regimen': fetchToutiaoRegimen,
+  'direct:sohu-health': fetchSohuHealth,
+  'direct:jin10': fetchJin10Flash,
+  'direct:github-trending-today': fetchGithubTrending,
+  'direct:producthunt': () => fetchFeedHot('https://www.producthunt.com/feed', 'https://www.producthunt.com/'),
+  'direct:sputniknewscn': () => fetchFeedHot('https://sputniknews.cn/export/rss2/archive/index.xml', 'https://sputniknews.cn/'),
+  'direct:zaobao': () => fetchHtmlAnchors('https://www.zaobao.com.sg/news/china', 'https://www.zaobao.com.sg/', /href="(\/news\/china\/story[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => `https://www.zaobao.com.sg${href}`),
+  'direct:hupu': () => fetchHtmlAnchors('https://bbs.hupu.com/all-gambia', 'https://bbs.hupu.com/', /href="(\/[^"]+\.html)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => `https://bbs.hupu.com${href}`),
+  'direct:nowcoder': () => fetchHtmlAnchors('https://www.nowcoder.com/', 'https://www.nowcoder.com/', /href="(\/discuss\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => `https://www.nowcoder.com${href}`),
+  'direct:steam': () => fetchHtmlAnchors('https://store.steampowered.com/stats/stats/?l=schinese', 'https://store.steampowered.com/', /href="(https:\/\/store\.steampowered\.com\/app\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
+  'direct:chongbuluo-hot': () => fetchHtmlAnchors('https://www.chongbuluo.com/forum.php?mod=guide&view=hot', 'https://www.chongbuluo.com/', /href="(forum\.php\?mod=viewthread[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => `https://www.chongbuluo.com/${href}`),
+  'direct:aihot': () => fetchHtmlAnchors('https://aihot.virxact.com/all', 'https://aihot.virxact.com/', /href="(https?:\/\/[^"]+)"[^>]*target="_blank"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
+  'direct:acfun': fetchAcfunHot,
+  'direct:dgtle': () => fetchHtmlAnchors('https://www.dgtle.com/', 'https://www.dgtle.com/', /href="(https:\/\/www\.dgtle\.com\/article-[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
+  'direct:douban-group': () => fetchHtmlAnchors('https://www.douban.com/group/explore', 'https://www.douban.com/', /href="(https:\/\/www\.douban\.com\/group\/topic\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
+  'direct:geekpark': () => fetchFeedHot('https://www.geekpark.net/rss', 'https://www.geekpark.net/'),
+  'direct:guokr': () => fetchHtmlAnchors('https://www.guokr.com/', 'https://www.guokr.com/', /href="(https:\/\/www\.guokr\.com\/article\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
+  'direct:hellogithub': fetchHelloGithub,
+  'direct:ifanr': () => fetchFeedHot('https://www.ifanr.com/feed', 'https://www.ifanr.com/'),
+  'direct:ithome-xijiayi': () => fetchHtmlAnchors('https://www.ithome.com/tag/xijiayi/', 'https://www.ithome.com/', /href="(https:\/\/www\.ithome\.com\/[^"]+)"[^>]*class="title"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
+  'direct:ngabbs': () => fetchHtmlAnchors('https://ngabbs.com/', 'https://bbs.nga.cn/', /href="\/read\.php\?tid=(\d+)"[^>]*>([\s\S]*?)<\/a>/gi, (tid) => `https://ngabbs.com/read.php?tid=${tid}`),
+  'direct:nytimes': () => fetchFeedHot('https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml', 'https://www.nytimes.com/'),
+  'direct:nytimes-cn': () => fetchNytimesCnHomepage(),
+  'direct:nytimes-cn-health': () => fetchNytimesCnSection('health'),
+  'direct:sina-news': () => fetchSinaRoll('2509'),
+  // Sources below also use direct, site-specific fetchers.
+  'direct:douyin': fetchDouyinHot,
+  'direct:cls-hot': fetchClsHot,
+  'direct:dongqiudi': fetchDongqiudi,
+  'direct:cankaoxiaoxi': fetchCankaoxiaoxi,
+  'direct:ifeng': fetchIfeng,
+  'direct:kaopu': fetchKaopu,
+  'direct:coolapk': fetchCoolapk,
+  'direct:pcbeta-windows11': fetchPcbeta,
+  'direct:qqvideo-tv-hotsearch': fetchQqVideoHot,
+  'direct:gelonghui': fetchGelonghui,
+  'direct:36kr': fetch36kr,
+  'direct:51cto': fetch51cto,
+  'direct:history': fetchHistoryToday,
+  'direct:honkai': () => fetchMiyousheNews(1, 'bh3'),
+  'direct:huxiu': fetchHuxiu,
+  'direct:kuaishou': fetchKuaishou,
+  'direct:lol': fetchLol,
+  'direct:miyoushe': () => fetchMiyousheNews(2, 'ys'),
+  'direct:netease-news': fetchNeteaseNews,
+  'direct:netease-health': fetchNeteaseHealth,
+  'direct:nodeseek': () => fetchFeedHot('https://rss.nodeseek.com/', 'https://www.nodeseek.com/'),
+  'direct:qq-news': fetchQqNews,
+  'direct:smzdm': fetchSmzdm,
+  'direct:starrail': () => fetchMiyousheNews(6, 'sr'),
+  'direct:weatheralarm': fetchWeatheralarm,
+  'direct:yystv': fetchYystv,
+  'direct:sopilot-exposure': fetchSopilotExposure,
+  'direct:sopilot-ai': fetchSopilotAi,
+  'direct:sopilot-topic': fetchSopilotTopic,
 };
 
 export function hasOfficialFetcher(sourceId: string) {
-  return OFFICIAL_SOURCE_IDS.has(sourceId) && Object.hasOwn(officialFetchers, sourceId);
+  return Object.hasOwn(officialFetchers, sourceId);
 }
 
 export async function fetchOfficial(sourceId: string) {
