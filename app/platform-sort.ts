@@ -3,16 +3,50 @@ const platformNameCollator = new Intl.Collator('zh-CN-u-co-pinyin', {
   numeric: true,
 });
 
+// Bucket each character: 0 = digit, 1 = ASCII letter, 2 = everything else
+// (CJK + punctuation). The pinyin collator orders CJK before Latin, so a
+// naive whole-string compare would place "X · AI榜" after "X · 曝光榜".
+// Splitting into same-bucket runs and comparing bucket-first at every position
+// keeps the requested 数字 → 英文字母 → 拼音 order recursively per segment.
+function charBucket(ch: string): 0 | 1 | 2 {
+  if (ch >= '0' && ch <= '9') return 0;
+  if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) return 1;
+  return 2;
+}
+
+function segmentName(name: string): Array<[0 | 1 | 2, string]> {
+  const segments: Array<[0 | 1 | 2, string]> = [];
+  let bucket: 0 | 1 | 2 | null = null;
+  let buffer = '';
+  for (const ch of name) {
+    const current = charBucket(ch);
+    if (bucket === null) {
+      bucket = current;
+      buffer = ch;
+    } else if (current === bucket) {
+      buffer += ch;
+    } else {
+      segments.push([bucket, buffer]);
+      bucket = current;
+      buffer = ch;
+    }
+  }
+  if (bucket !== null && buffer) segments.push([bucket, buffer]);
+  return segments;
+}
+
 export function comparePlatformName(a: string, b: string) {
-  const group = (name: string) => {
-    const trimmed = name.trim();
-    if (/^\d/.test(trimmed)) return 0;
-    if (/^[a-z]/i.test(trimmed)) return 1;
-    return 2;
-  };
-  const groupDifference = group(a) - group(b);
-  if (groupDifference !== 0) return groupDifference;
-  return platformNameCollator.compare(a, b);
+  const segmentsA = segmentName(a);
+  const segmentsB = segmentName(b);
+  const length = Math.min(segmentsA.length, segmentsB.length);
+  for (let index = 0; index < length; index += 1) {
+    const [bucketA, textA] = segmentsA[index];
+    const [bucketB, textB] = segmentsB[index];
+    if (bucketA !== bucketB) return bucketA - bucketB;
+    const difference = platformNameCollator.compare(textA, textB);
+    if (difference !== 0) return difference;
+  }
+  return segmentsA.length - segmentsB.length;
 }
 
 export function orderFavoritePlatforms<T extends { source: string }>(

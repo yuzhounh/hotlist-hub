@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { categories, categoryCounts, platformFetchLabel, sourceCatalog, type PlatformDefinition } from './source-catalog';
+import { categories, categoryCounts, normalizeSourceId, sourceCatalog, type PlatformDefinition } from './source-catalog';
 import { HeaderActions } from './components/header-actions';
 import { THEME_KEY } from './components/theme-toggle';
 import { useAuth } from './components/auth-provider';
@@ -51,6 +51,15 @@ const EMPTY_CARD_PREFS: CardPrefsData = {
   order: {},
 };
 
+function cleanSourceIds(items: unknown) {
+  if (!Array.isArray(items)) return [];
+  const valid = new Set(sourceCatalog.map((platform) => platform.source));
+  return [...new Set(items
+    .filter((source): source is string => typeof source === 'string')
+    .map(normalizeSourceId)
+    .filter((source) => valid.has(source)))];
+}
+
 function readCardPrefs(): CardPrefsData {
   try {
     const shouldResetOrder = localStorage.getItem(CARD_ORDER_VERSION_KEY) !== CARD_ORDER_VERSION;
@@ -60,14 +69,13 @@ function readCardPrefs(): CardPrefsData {
       return { ...EMPTY_CARD_PREFS };
     }
     const parsed = JSON.parse(raw) as Partial<CardPrefsData>;
-    const valid = new Set(sourceCatalog.map((platform) => platform.source));
-    const wide = Array.isArray(parsed.wide) ? parsed.wide.filter((source) => valid.has(source)) : [];
-    const expanded = Array.isArray(parsed.expanded) ? parsed.expanded.filter((source) => valid.has(source)) : [];
+    const wide = cleanSourceIds(parsed.wide);
+    const expanded = cleanSourceIds(parsed.expanded);
     const order = !shouldResetOrder && parsed.order && typeof parsed.order === 'object'
       ? Object.fromEntries(
         Object.entries(parsed.order).map(([key, value]) => [
           key,
-          Array.isArray(value) ? value.filter((source) => valid.has(source)) : [],
+          cleanSourceIds(value),
         ]),
       )
       : {};
@@ -107,8 +115,7 @@ function readFavoriteSources(): Set<string> {
     if (!raw) return new Set();
     const list = JSON.parse(raw) as string[];
     if (!Array.isArray(list)) return new Set();
-    const valid = new Set(sourceCatalog.map((platform) => platform.source));
-    return new Set(list.filter((source) => valid.has(source)));
+    return new Set(cleanSourceIds(list));
   } catch {
     return new Set();
   }
@@ -135,7 +142,8 @@ function readPlatformCache(): PlatformCacheEntry[] {
   try {
     const raw = sessionStorage.getItem(CACHE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw) as PlatformCacheEntry[];
+    const parsed = JSON.parse(raw) as PlatformCacheEntry[];
+    return parsed.map((entry) => ({ ...entry, source: normalizeSourceId(entry.source) }));
   } catch {
     return [];
   }
@@ -189,7 +197,6 @@ const EXPANDED_ITEM_LIMIT = 30;
 const PAGE_SIZE = 9;
 const PAGE_MAX_CONCURRENCY = 12;
 const FETCH_RETRY_DELAYS_MS = [1500];
-const NEWSNOW_MAX_CONCURRENCY = 2;
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -259,20 +266,16 @@ function mergeUnique(primary: string[], secondary: string[]) {
 }
 
 function mergeCardPreferences(local: CardPrefsData, remote?: Partial<CardPrefsData>): CardPrefsData {
-  const valid = new Set(sourceCatalog.map((platform) => platform.source));
-  const clean = (items: unknown) => Array.isArray(items)
-    ? items.filter((source): source is string => typeof source === 'string' && valid.has(source))
-    : [];
   const favoriteOrder = mergeUnique(
-    clean(remote?.order?.[FAVORITES_CATEGORY]),
-    clean(local.order[FAVORITES_CATEGORY]),
+    cleanSourceIds(remote?.order?.[FAVORITES_CATEGORY]),
+    cleanSourceIds(local.order[FAVORITES_CATEGORY]),
   );
   const order: Record<string, string[]> = favoriteOrder.length
     ? { [FAVORITES_CATEGORY]: favoriteOrder }
     : {};
   return {
-    wide: mergeUnique(clean(remote?.wide), local.wide),
-    expanded: mergeUnique(clean(remote?.expanded), local.expanded),
+    wide: mergeUnique(cleanSourceIds(remote?.wide), cleanSourceIds(local.wide)),
+    expanded: mergeUnique(cleanSourceIds(remote?.expanded), cleanSourceIds(local.expanded)),
     order,
   };
 }
@@ -471,18 +474,8 @@ export default function Home() {
       });
     };
 
-    const newsnowTargets = targets.filter((platform) => platform.provider === 'newsnow');
-    const otherTargets = targets.filter((platform) => platform.provider !== 'newsnow');
     const baseConcurrency = options?.concurrency ?? 8;
-
-    await Promise.all([
-      runPlatformFetchPool(otherTargets, baseConcurrency, applyResult),
-      runPlatformFetchPool(
-        newsnowTargets,
-        Math.min(NEWSNOW_MAX_CONCURRENCY, newsnowTargets.length),
-        applyResult,
-      ),
-    ]);
+    await runPlatformFetchPool(targets, baseConcurrency, applyResult);
     if (trackGlobalRefresh) setIsRefreshing(false);
   }, []);
 
@@ -547,8 +540,7 @@ export default function Home() {
           setPreferenceSyncStatus('synced');
           return;
         }
-        const valid = new Set(sourceCatalog.map((platform) => platform.source));
-        const favorites = new Set((remote.favorites ?? []).filter((source) => valid.has(source)));
+        const favorites = new Set(cleanSourceIds(remote.favorites));
         const restoredCardPrefs = mergeCardPreferences(
           { ...EMPTY_CARD_PREFS },
           remote.version === 4 ? remote.cardPrefs : { ...remote.cardPrefs, order: {} },
@@ -681,7 +673,7 @@ export default function Home() {
           ? remote.cardPrefs
           : remote?.cardPrefs ? { ...remote.cardPrefs, order: {} } : undefined;
         const mergedCardPrefs = mergeCardPreferences(localCardPrefs, remoteCardPrefs);
-        const favorites = new Set(mergeUnique(remote?.favorites ?? [], [...localFavorites]));
+        const favorites = new Set(mergeUnique(cleanSourceIds(remote?.favorites), [...localFavorites]));
         const mergedTheme = remote?.theme === 'dark' || remote?.theme === 'light'
           ? remote.theme
           : readThemePreference();
@@ -914,7 +906,6 @@ export default function Home() {
               const isFavorite = favoriteSources.has(platform.source);
               const isDragging = draggingSource === platform.source;
               const isDropTarget = dropTarget === platform.source;
-              const fetchLabel = platformFetchLabel(platform);
               const statusLabel = platform.status === 'error'
                 ? platform.items.length ? `使用上次数据 · ${platform.updated}` : '暂不可用'
                 : platform.status === 'success'
@@ -1108,7 +1099,6 @@ export default function Home() {
                     <i /> {statusLabel}
                     {platform.consecutiveFailures > 0 ? ` · 连续失败 ${platform.consecutiveFailures} 次` : ''}
                     {platform.items.length ? ` · 显示 ${Math.min(visibleLimit, platform.items.length)}/${platform.items.length} 条` : ''}
-                    {fetchLabel !== '本站直连' ? ` · ${fetchLabel}` : ''}
                   </span>
                   <a className="full-list" href={platform.url} target="_blank" rel="noreferrer">查看完整榜单</a>
                 </footer>
