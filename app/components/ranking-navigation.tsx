@@ -16,6 +16,8 @@ const RANKING_SITES = [
   { name: '今日热榜', host: 'hot.xhily.com', url: 'https://hot.xhily.com/' },
   { name: '今日热榜', host: 'hot.sapi.run', url: 'https://hot.sapi.run/#/' },
   { name: '全网热榜', host: 'rebang.today', url: 'https://rebang.today/' },
+  { name: '极简热榜', host: 'top.open2hub.com', url: 'https://top.open2hub.com/' },
+  { name: 'X 热帖', host: 'sopilot.net', url: 'https://sopilot.net/zh/hot-tweets' },
 ];
 
 const CATEGORY_GROUPS: Array<{ title: string; items: RankingCategory[] }> = [
