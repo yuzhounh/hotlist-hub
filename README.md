@@ -86,20 +86,20 @@ npx next build
 11. **[ShellMonster/DailyHotApi-Go](https://github.com/ShellMonster/DailyHotApi-Go)**  
     基于 `imsyy/DailyHotApi` 的 Go 语言高性能重构版本，为 60+ 新闻、社交与科技热榜提供统一 API。
 
-12. **[今日热榜官网](https://tophub.today/)**
+12. **[今日热榜官网（tophub.today）](https://tophub.today/)**
     榜单导航：[综合榜](https://tophub.today/c/news)
 
-13. **[X 热帖](https://sopilot.net/zh/hot-tweets)**
+13. **[X 热帖（sopilot.net）](https://sopilot.net/zh/hot-tweets)**
     SoPilot 提供的 X（Twitter）热门帖子榜单入口。
 
-14. **[极简热榜](https://top.open2hub.com/)**
+14. **[极简热榜（top.open2hub.com）](https://top.open2hub.com/)**
     Open2Hub 提供的简洁聚合热榜页面。
 
 15. **[今日热榜（hot.sapi.run）](https://hot.sapi.run/#/)**
 
 16. **[今日热榜（hot.xhily.com）](https://hot.xhily.com/)**
 
-17. **[全网热榜](https://rebang.today/)**
+17. **[全网热榜（rebang.today）](https://rebang.today/)**
 
 ## 说明
 
