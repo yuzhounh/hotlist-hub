@@ -299,7 +299,7 @@ async function fetchToutiaoRegimen(): Promise<HotResult> {
   let cursor: string | number = 0;
   try {
     for (let page = 0; page < 6 && items.length < 30; page += 1) {
-      const data = await fetchJson<RegimenFeed>(
+      const data: RegimenFeed = await fetchJson<RegimenFeed>(
         `https://www.toutiao.com/api/pc/feed/?category=news_regimen&utm_source=toutiao&max_behot_time=${cursor}`,
         pageUrl,
       );
