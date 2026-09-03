@@ -77,6 +77,7 @@ export const sourceCatalog: PlatformDefinition[] = [
   source('机器之心', '最新资讯', '机', '#111827', '科技', 'direct', 'ai-media-jiqizhixin', 'https://www.jiqizhixin.com/'),
   source('量子位', '最新资讯', '量', '#1f6feb', '科技', 'direct', 'ai-media-qbitai', 'https://www.qbitai.com/'),
   source('新智元', '最新资讯', '新', '#ed1c24', '科技', 'direct', 'ai-media-aiera', 'https://aiera.com.cn/'),
+  source('AIHOT', 'AI 热点榜', '热', '#0fb5c9', '科技', 'direct', 'aihot-hot', 'https://aihot.virxact.com/hot'),
 
   source('稀土掘金', '', '掘', '#1e80ff', '开发者', 'direct', 'juejin', 'https://juejin.cn/hot/articles'),
   source('V2EX', '分享', 'V2', '#778087', '开发者', 'direct', 'v2ex-share', 'https://www.v2ex.com/?tab=share'),

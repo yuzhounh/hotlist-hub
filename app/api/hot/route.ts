@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'node:crypto';
+import { createContext, runInContext } from 'node:vm';
 import { getSourceDefinition } from '../../source-catalog';
 import { fetchOfficial, hasOfficialFetcher } from './official-fetchers';
 import { browserHeaders, decodeHtml, dedupeItems, fetchJson, fetchText, parseFeed, scrapeAnchors, type UnifiedItem } from './utils';
@@ -167,6 +168,70 @@ async function fetchAiBotDaily() {
       url: new URL(href, pageUrl).href,
     }),
   ).slice(0, 30);
+  return { updatedTime: Date.now(), items };
+}
+
+const AIHOT_PAGE = 'https://aihot.virxact.com/hot';
+
+function solveAihotChallenge(html: string) {
+  const script = html.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
+  if (!script || !script.includes('__tst_status')) return null;
+  const cookies: string[] = [];
+  const document = { cookie: '' };
+  Object.defineProperty(document, 'cookie', {
+    set(value: string) {
+      cookies.push(String(value).split(';')[0]);
+    },
+    get: () => cookies.join('; '),
+    enumerable: true,
+  });
+  runInContext(script, createContext({
+    document,
+    location: { href: AIHOT_PAGE, replace: (value: string) => value },
+    setTimeout: () => 0,
+  }), { timeout: 1000 });
+  return cookies.join('; ') || null;
+}
+
+async function fetchAihotHot() {
+  const headers = {
+    ...browserHeaders,
+    Accept: 'text/html,application/xhtml+xml,*/*',
+    'Accept-Language': 'zh-CN,zh;q=0.9',
+  };
+  const first = await fetch(AIHOT_PAGE, {
+    headers,
+    cache: 'no-store',
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!first.ok) throw new Error(`AIHOT returned ${first.status}`);
+  let html = await first.text();
+  const solved = solveAihotChallenge(html);
+  if (solved) {
+    const seed = (first.headers.getSetCookie?.() ?? []).map((value) => value.split(';')[0]).join('; ');
+    const response = await fetch(AIHOT_PAGE, {
+      headers: { ...headers, Cookie: [seed, solved].filter(Boolean).join('; ') },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) throw new Error(`AIHOT retry returned ${response.status}`);
+    html = await response.text();
+  }
+  if (html.includes('__tst_status')) throw new Error('AIHOT bot challenge was not solved');
+  const items = html.split('<li class="hot-rank-row">').slice(1).flatMap((row) => {
+    const link = row.match(/<a class="hot-rank-link" href="(\/story\/[^"]+)">([\s\S]*?)<\/a>/);
+    if (!link) return [];
+    const title = decodeHtml(link[2]);
+    if (!title) return [];
+    const heat = row.match(/hot-rank-sources-count">(\d+)</)?.[1];
+    return [{
+      id: link[1].slice('/story/'.length),
+      title,
+      url: new URL(link[1], AIHOT_PAGE).href,
+      ...(heat ? { extra: { info: `热度 ${heat}` } } : {}),
+    }];
+  });
+  if (!items.length) throw new Error('AIHOT hot list was not found');
   return { updatedTime: Date.now(), items };
 }
 
@@ -1151,6 +1216,7 @@ async function fetchForeign(source: string) {
 
 async function fetchDirect(source: string) {
   if (source === 'ai-bot-daily') return fetchAiBotDaily();
+  if (source === 'aihot-hot') return fetchAihotHot();
   if (source.startsWith('ai-media-')) return fetchAiMediaLatest(source);
   if (source === 'infzm-hot') return fetchInfzmHot();
   if (source === 'dili360-hot') return fetchDili360Hot();
