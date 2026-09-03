@@ -5,7 +5,7 @@ import test from 'node:test';
 import { normalizeSourceId, sourceCatalog } from './source-catalog.ts';
 
 test('all catalog sources use direct fetch identifiers and local logos', () => {
-  assert.equal(sourceCatalog.length, 75);
+  assert.equal(sourceCatalog.length, 76);
   assert.equal(new Set(sourceCatalog.map((platform) => platform.source)).size, sourceCatalog.length);
 
   for (const platform of sourceCatalog) {
