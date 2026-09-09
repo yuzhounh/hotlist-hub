@@ -40,9 +40,7 @@ npm run lint
 npx next build
 ```
 
-## 致谢与参考项目
-
-热榜汇的设计、数据接入与实现调研受益于以下项目和网站，在此向所有作者和贡献者表示感谢。
+## 相关项目
 
 1. **[imsyy/DailyHotApi](https://github.com/imsyy/DailyHotApi)**  
    今日热榜 API，一个聚合热门数据的 API 接口，支持 RSS 模式及 Vercel 部署。<br>
