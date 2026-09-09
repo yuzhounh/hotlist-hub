@@ -101,6 +101,15 @@ npx next build
 
 17. **[全网热榜（rebang.today）](https://rebang.today/)**
 
+18. **[JackyST0/hotpush](https://github.com/JackyST0/hotpush)**  
+    热点聚合推送平台，聚合微博、知乎、B站等 13+ 平台热榜，支持 Telegram、Discord、企业微信等多渠道推送。<br>
+    在线页面：[HotPush - 热点聚合推送平台](https://hotpush.dawenzaist.de5.net/hotlist)
+
+19. **[JackyST0/awesome-rsshub-routes](https://github.com/JackyST0/awesome-rsshub-routes)**  
+    实用的 RSS 订阅源目录，收录官方 RSS 与 RSSHub 路由，支持在线浏览、OPML 导入和可用性检查。<br>
+    中文文档：[readme-zh.md](https://github.com/JackyST0/awesome-rsshub-routes/blob/main/readme-zh.md)<br>
+    在线页面：[Awesome RSSHub Routes - 官方 RSS 订阅目录](https://jackyst0.github.io/awesome-rsshub-routes/)
+
 ## 说明
 
 本站仅用于趋势浏览。内容与商标归各来源平台及原作者所有，请遵守相应网站的服务条款与使用规范。
