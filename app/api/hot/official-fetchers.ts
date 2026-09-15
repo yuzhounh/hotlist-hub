@@ -1246,7 +1246,7 @@ export const officialFetchers: Record<string, () => Promise<HotResult>> = {
   'direct:nowcoder': () => fetchHtmlAnchors('https://www.nowcoder.com/', 'https://www.nowcoder.com/', /href="(\/discuss\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => `https://www.nowcoder.com${href}`),
   'direct:steam': () => fetchHtmlAnchors('https://store.steampowered.com/stats/stats/?l=schinese', 'https://store.steampowered.com/', /href="(https:\/\/store\.steampowered\.com\/app\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
   'direct:chongbuluo-hot': () => fetchHtmlAnchors('https://www.chongbuluo.com/forum.php?mod=guide&view=hot', 'https://www.chongbuluo.com/', /href="(forum\.php\?mod=viewthread[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => `https://www.chongbuluo.com/${href}`),
-  'direct:aihot': () => fetchHtmlAnchors('https://aihot.virxact.com/all', 'https://aihot.virxact.com/', /href="(https?:\/\/[^"]+)"[^>]*target="_blank"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
+  'direct:aihot': () => fetchHtmlAnchors('https://aihot.news/all', 'https://aihot.news/', /href="(https?:\/\/[^"]+)"[^>]*target="_blank"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
   'direct:acfun': fetchAcfunHot,
   'direct:dgtle': () => fetchHtmlAnchors('https://www.dgtle.com/', 'https://www.dgtle.com/', /href="(https:\/\/www\.dgtle\.com\/article-[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
   'direct:douban-group': () => fetchHtmlAnchors('https://www.douban.com/group/explore', 'https://www.douban.com/', /href="(https:\/\/www\.douban\.com\/group\/topic\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (href) => href),
