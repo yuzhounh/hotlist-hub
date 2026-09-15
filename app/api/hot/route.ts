@@ -171,7 +171,8 @@ async function fetchAiBotDaily() {
   return { updatedTime: Date.now(), items };
 }
 
-const AIHOT_PAGE = 'https://aihot.virxact.com/hot';
+const AIHOT_PAGE = 'https://aihot.news/hot';
+const AIHOT_API = 'https://aihot.news/api/v1/hot-topics';
 
 function solveAihotChallenge(html: string) {
   const script = html.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
@@ -194,6 +195,50 @@ function solveAihotChallenge(html: string) {
 }
 
 async function fetchAihotHot() {
+  // 1. Try official JSON API first
+  try {
+    const apiRes = await fetch(AIHOT_API, {
+      headers: {
+        'User-Agent': browserHeaders['User-Agent'],
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
+    });
+    if (apiRes.ok) {
+      const data = await apiRes.json() as {
+        items?: Array<{
+          id?: string;
+          rank?: number;
+          title?: string;
+          sourceCount?: number;
+          signalCount?: number;
+          links?: { story?: string; aihot?: string; original?: string };
+        }>;
+      };
+      if (Array.isArray(data?.items) && data.items.length > 0) {
+        const items = data.items.flatMap((item) => {
+          if (!item?.title) return [];
+          const rawUrl = item.links?.story || item.links?.aihot || item.links?.original || `https://aihot.news/items/${item.id}`;
+          const url = rawUrl.replace(/^https:\/\/aihot\.virxact\.com\//, 'https://aihot.news/');
+          const heat = item.sourceCount ?? item.signalCount;
+          return [{
+            id: String(item.id || item.rank || url),
+            title: item.title.trim(),
+            url,
+            ...(heat != null ? { extra: { info: `热度 ${heat}` } } : {}),
+          }];
+        });
+        if (items.length > 0) {
+          return { updatedTime: Date.now(), items };
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[hot] AIHOT api fetch failed, falling back to HTML scraping', err);
+  }
+
+  // 2. Fallback: HTML page scraping
   const headers = {
     ...browserHeaders,
     Accept: 'text/html,application/xhtml+xml,*/*',
@@ -218,12 +263,17 @@ async function fetchAihotHot() {
     html = await response.text();
   }
   if (html.includes('__tst_status')) throw new Error('AIHOT bot challenge was not solved');
-  const items = html.split('<li class="hot-rank-row">').slice(1).flatMap((row) => {
-    const link = row.match(/<a class="hot-rank-link" href="(\/story\/[^"]+)">([\s\S]*?)<\/a>/);
+
+  // Try parsing HTML rows
+  const rows = html.split(/<li\b[^>]*\bclass="[^"]*hot-rank-row[^"]*"[^>]*>/i).slice(1);
+  const items = rows.flatMap((row) => {
+    const link = row.match(/<a[^>]*\bclass="[^"]*hot-rank-link[^"]*"[^>]*\bhref="(\/story\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/i)
+      || row.match(/<a[^>]*\bhref="(\/story\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/i);
     if (!link) return [];
-    const title = decodeHtml(link[2]);
+    const title = decodeHtml(link[2].replace(/<[^>]+>/g, '')).trim();
     if (!title) return [];
-    const heat = row.match(/hot-rank-sources-count">(\d+)</)?.[1];
+    const heat = row.match(/(\d+)(?:<!-- -->)?\s*个精选信源/i)?.[1]
+      || row.match(/hot-rank-sources-count">(\d+)</i)?.[1];
     return [{
       id: link[1].slice('/story/'.length),
       title,
@@ -231,6 +281,56 @@ async function fetchAihotHot() {
       ...(heat ? { extra: { info: `热度 ${heat}` } } : {}),
     }];
   });
+
+  // Try parsing JSON-LD ItemList if rows parsing yielded no items
+  if (!items.length) {
+    const jsonLdScripts = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi) ?? [];
+    for (const scriptTag of jsonLdScripts) {
+      try {
+        const jsonText = scriptTag.replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '');
+        const parsed = JSON.parse(jsonText) as {
+          '@type'?: string;
+          itemListElement?: Array<{ name?: string; url?: string; position?: number }>;
+        };
+        if (parsed?.['@type'] === 'ItemList' && Array.isArray(parsed.itemListElement) && parsed.itemListElement.length > 0) {
+          const ldItems = parsed.itemListElement.flatMap((entry) => {
+            if (!entry?.name) return [];
+            const url = entry.url || AIHOT_PAGE;
+            return [{
+              id: entry.url ? entry.url.replace(/^.*\/story\//, '') : String(entry.position || entry.name),
+              title: decodeHtml(entry.name),
+              url: url.replace(/^https:\/\/aihot\.virxact\.com\//, 'https://aihot.news/'),
+            }];
+          });
+          if (ldItems.length > 0) {
+            return { updatedTime: Date.now(), items: ldItems };
+          }
+        }
+      } catch {
+        // Continue to generic fallback
+      }
+    }
+  }
+
+  // Generic fallback: all story links
+  if (!items.length) {
+    const storyRegex = /<a[^>]*\bhref="(\/story\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+    let match: RegExpExecArray | null;
+    const seen = new Set<string>();
+    while ((match = storyRegex.exec(html)) !== null) {
+      const href = match[1];
+      const title = decodeHtml(match[2].replace(/<[^>]+>/g, '')).trim();
+      if (title && !seen.has(href)) {
+        seen.add(href);
+        items.push({
+          id: href.slice('/story/'.length),
+          title,
+          url: new URL(href, AIHOT_PAGE).href,
+        });
+      }
+    }
+  }
+
   if (!items.length) throw new Error('AIHOT hot list was not found');
   return { updatedTime: Date.now(), items };
 }
