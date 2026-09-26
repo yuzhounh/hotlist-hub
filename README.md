@@ -7,6 +7,10 @@
 <p align="center">热榜一屏尽览，此刻正在发生。</p>
 
 <p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-f59e0b.svg" alt="License: MIT"></a>
+</p>
+
+<p align="center">
   <a href="https://hotlist-hub.vercel.app">在线访问</a>
 </p>
 
@@ -21,7 +25,9 @@
 需要 Node.js 22.13.0 或更高版本。
 
 ```bash
-npm install
+git clone https://github.com/yuzhounh/hotlist-hub.git
+cd hotlist-hub
+npm ci
 npm run dev
 ```
 
@@ -37,10 +43,13 @@ firebase deploy --only firestore:rules
 
 ```bash
 npm run lint
-npx next build
+npm test
+npm run build
 ```
 
 ## 相关项目
+
+[hotlist-source-directory](https://github.com/yuzhounh/hotlist-source-directory) 提供可搜索的热榜来源目录；本项目侧重展示各来源的热门内容。下列外部项目保留为调研参考。
 
 1. **[imsyy/DailyHotApi](https://github.com/imsyy/DailyHotApi)**  
    今日热榜 API，一个聚合热门数据的 API 接口，支持 RSS 模式及 Vercel 部署。<br>
@@ -111,3 +120,7 @@ npx next build
 ## 说明
 
 本站仅用于趋势浏览。内容与商标归各来源平台及原作者所有，请遵守相应网站的服务条款与使用规范。
+
+## 开源协议 (License)
+
+本项目采用 [MIT 许可证](LICENSE)。
