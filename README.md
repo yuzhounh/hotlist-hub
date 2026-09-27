@@ -7,12 +7,12 @@
 <p align="center">热榜一屏尽览，此刻正在发生。</p>
 
 <p align="center">
-  <a href="https://hotlist-hub.web.app/"><img src="https://img.shields.io/badge/Firebase_Hosting-online-FFA000?logo=firebase" alt="Firebase Hosting online"></a>
+  <a href="https://hotlist-hub.vercel.app"><img src="https://img.shields.io/badge/Online-Vercel-000000?logo=vercel" alt="Vercel online"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-f59e0b.svg" alt="License: MIT"></a>
 </p>
 
 <p align="center">
-  <a href="https://hotlist-hub.web.app/">在线访问</a>
+  <a href="https://hotlist-hub.vercel.app">在线访问</a>
 </p>
 
 ## 项目简介
