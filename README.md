@@ -7,11 +7,12 @@
 <p align="center">热榜一屏尽览，此刻正在发生。</p>
 
 <p align="center">
+  <a href="https://hotlist-hub.pages.dev/"><img src="https://img.shields.io/badge/Online-Cloudflare_Pages-F38020?logo=cloudflare" alt="Cloudflare Pages online"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-f59e0b.svg" alt="License: MIT"></a>
 </p>
 
 <p align="center">
-  <a href="https://hotlist-hub.vercel.app">在线访问</a>
+  <a href="https://hotlist-hub.pages.dev/">在线访问</a>
 </p>
 
 ## 项目简介
