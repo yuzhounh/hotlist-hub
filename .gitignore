@@ -31,8 +31,12 @@ yarn-error.log*
 
 # deployment and generated files
 .vercel
+.firebase/
+.firebaserc.local
 next-env.d.ts
 /dist/
+/dist_netlify/
+/dist_pages/
 /.wrangler/
 /outputs/
 /work/
