@@ -1351,11 +1351,27 @@ async function fetchDirect(source: string) {
   throw new Error('Unsupported direct source');
 }
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
+}
+
 export async function GET(request: NextRequest) {
   const sourceId = request.nextUrl.searchParams.get('source') ?? '';
   const definition = getSourceDefinition(sourceId);
   if (!definition) {
-    return NextResponse.json({ message: 'Unsupported source' }, { status: 400 });
+    return NextResponse.json({ message: 'Unsupported source' }, {
+      status: 400,
+      headers: corsHeaders,
+    });
   }
 
   try {
@@ -1368,10 +1384,17 @@ export async function GET(request: NextRequest) {
     const items = dedupeItems(data.items);
     if (!items.length) throw new Error('Empty source');
     return NextResponse.json({ ...data, items }, {
-      headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' },
+      headers: {
+        'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+        ...corsHeaders,
+      },
     });
   } catch (error) {
     console.error(`[hot] ${sourceId} unavailable`, error);
-    return NextResponse.json({ message: 'Source unavailable' }, { status: 502 });
+    return NextResponse.json({ message: 'Source unavailable' }, {
+      status: 502,
+      headers: corsHeaders,
+    });
   }
 }
+

@@ -320,7 +320,14 @@ function formatUpdated(value?: number | string) {
 
 async function fetchPlatform(platform: Platform): Promise<Platform> {
   try {
-    const response = await fetch(`/api/hot?source=${encodeURIComponent(platform.source)}`, { cache: 'no-store' });
+    let url = `/api/hot?source=${encodeURIComponent(platform.source)}`;
+    if (typeof window !== 'undefined' && (window.location.hostname.endsWith('.web.app') || window.location.hostname.endsWith('.firebaseapp.com'))) {
+      url = `https://hotlist-hub.vercel.app/api/hot?source=${encodeURIComponent(platform.source)}`;
+    }
+    let response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok && !url.startsWith('https://hotlist-hub.vercel.app')) {
+      response = await fetch(`https://hotlist-hub.vercel.app/api/hot?source=${encodeURIComponent(platform.source)}`, { cache: 'no-store' });
+    }
     if (!response.ok) throw new Error('Source unavailable');
     const payload = await response.json() as SourceResponse;
     const safeUrl = (value?: string) => {
