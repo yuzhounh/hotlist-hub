@@ -1,18 +1,19 @@
 <p align="center">
-  <img src="public/logo.svg" width="88" height="88" alt="热榜汇 Logo">
+  <img src="public/logo.svg" width="112" alt="热榜汇 · Hotlist Hub logo">
 </p>
 
-<h1 align="center">热榜汇</h1>
+<h1 align="center">热榜汇 · Hotlist Hub</h1>
 
-<p align="center">热榜一屏尽览，此刻正在发生。</p>
+<p align="center"><strong>新闻、社交、科技与文娱热榜，一屏尽览。</strong></p>
 
 <p align="center">
-  <a href="https://hotlist-hub.vercel.app"><img src="https://img.shields.io/badge/Online-Vercel-000000?logo=vercel" alt="Vercel online"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-f59e0b.svg" alt="License: MIT"></a>
+  <a href="https://hotlist-hub.pages.dev/"><img src="https://img.shields.io/badge/Website-Cloudflare%20Pages-f38020?style=flat&amp;logo=cloudflare&amp;logoColor=white" alt="Website: Cloudflare Pages"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/React-19-61dafb?style=flat&amp;logo=react&amp;logoColor=white" alt="React: 19">
 </p>
 
 <p align="center">
-  <a href="https://hotlist-hub.vercel.app">在线访问</a>
+  <a href="https://hotlist-hub.pages.dev/">在线体验</a> · <a href="https://github.com/yuzhounh/hotlist-hub/releases/latest">发布版本</a> · <a href="#本地运行">快速开始</a> · <a href="LICENSE">开源协议</a>
 </p>
 
 ## 项目简介
@@ -151,6 +152,6 @@ npm run test:firebase
 
 本站仅用于趋势浏览。内容与商标归各来源平台及原作者所有，请遵守相应网站的服务条款与使用规范。
 
-## 开源协议 (License)
+## 开源协议
 
 本项目采用 [MIT 许可证](LICENSE)。
