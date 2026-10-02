@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   title: '热榜汇',
   description: '热榜一屏尽览，聚合微博、知乎、抖音、新闻、科技与开发者平台，打开即看此刻热点。',
   icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
-    shortcut: '/favicon.svg',
+    icon: [{ url: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/favicon.svg`, type: 'image/svg+xml' }],
+    shortcut: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/favicon.svg`,
   },
   openGraph: {
     title: '热榜汇',

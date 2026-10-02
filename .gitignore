@@ -37,6 +37,11 @@ next-env.d.ts
 /dist/
 /dist_netlify/
 /dist_pages/
+/.dist_netlify-build/
+/.dist_pages-build/
+/.netlify/
+/.firebase-test/
+*-debug.log
 /.wrangler/
 /outputs/
 /work/

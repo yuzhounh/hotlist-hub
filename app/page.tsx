@@ -320,7 +320,8 @@ function formatUpdated(value?: number | string) {
 
 async function fetchPlatform(platform: Platform): Promise<Platform> {
   try {
-    let url = `/api/hot?source=${encodeURIComponent(platform.source)}`;
+    const apiOrigin = process.env.NEXT_PUBLIC_HOT_API_ORIGIN || '';
+    let url = `${apiOrigin}/api/hot?source=${encodeURIComponent(platform.source)}`;
     if (typeof window !== 'undefined' && (window.location.hostname.endsWith('.web.app') || window.location.hostname.endsWith('.firebaseapp.com'))) {
       url = `https://hotlist-hub.vercel.app/api/hot?source=${encodeURIComponent(platform.source)}`;
     }
@@ -975,7 +976,7 @@ export default function Home() {
                       {/* Platform logos use a native image so the fallback can take over immediately on load errors. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={platform.logo}
+                        src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}${platform.logo}`}
                         alt=""
                         width="128"
                         height="128"

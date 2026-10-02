@@ -48,6 +48,35 @@ npm test
 npm run build
 ```
 
+`npm run build` 使用 vinext，读取 `vite.config.ts` 中的 Cloudflare/Sites 配置，生成包含客户端与服务端的 `dist/` 产物。它需要相应运行时，不能把整个 `dist/` 当作纯静态站点直接上传。
+
+Vercel 使用 Next.js 构建；`vercel.json` 显式调用以下入口，由 Vercel 的 Next.js 运行时提供页面和 `/api/hot`：
+
+```bash
+npm run build:vercel
+```
+
+该命令执行本地依赖中的 `next build`，产物为 `.next/`。发布时在项目根目录使用 Vercel 的框架部署流程，不直接上传 `.next/` 静态文件。
+
+静态平台使用独立前端包，并调用 Vercel 的 `/api/hot`，Firebase 登录和偏好同步仍直接使用 Firebase SDK：
+
+```bash
+npm run build:static  # Firebase / Netlify / Cloudflare Pages: dist_netlify/
+npm run build:pages   # GitHub Pages: dist_pages/，资源前缀 /hotlist-hub
+```
+
+两个命令都先重新运行 Next 构建，再从同次构建复制预渲染首页、404 页面、客户端资源和 `public/`，设置明确的 API 地址。打包器会拒绝 Server Actions、未预渲染首页和新增页面，避免静默遗漏服务端功能。静态包依赖 Vercel 后端；默认 vinext 构建仍用于其 Cloudflare/Sites 运行时。
+
+GitHub Pages 工作流使用同一打包入口和 `NEXT_PUBLIC_FIREBASE_*` 仓库 secrets；这些值也必须在本地静态构建及 Vercel 构建环境中配置。`firebase.json` 的 Hosting 目录保持为 `dist_netlify/`。
+
+隔离的登录与偏好同步回归测试需要 Java 21 或以上版本，并使用 `demo-hotlist-hub` 模拟项目，不读写生产用户数据：
+
+```bash
+npm run test:firebase
+```
+
+测试覆盖 Google 提供方身份、偏好创建/读取/更新、其他用户与退出登录后的访问拒绝。Pages 工作流先在 Ubuntu/Java 21 环境运行该测试，通过后才发布。生产发布还应核对 Firebase 的 Google 提供方、授权域名和各平台首页资源/API 响应。
+
 ## 相关项目
 
 [hotlist-source-directory](https://github.com/yuzhounh/hotlist-source-directory) 提供可搜索的热榜来源目录；本项目侧重展示各来源的热门内容。下列外部项目保留为调研参考。
