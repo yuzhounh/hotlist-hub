@@ -2,6 +2,18 @@
 
 .platform-icon-fallback{visibility:hidden}.platform-icon-fallback.is-visible{visibility:visible}
 
+@media (max-width: 760px) {
+  .primary-bar .primary-tabs { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; }
+  .primary-tabs button, .toolbar-actions button, .pagination button { min-height: 44px; flex-shrink: 0; }
+  .site-header .header-icon-btn, .platform-card .card-head .card-action-btn, .ranking-drawer-head .ranking-drawer-close { width: 44px; height: 44px; }
+  .view-toolbar { position: static !important; }
+  body .view-toolbar input, body .ranking-category-search input { font-size: 16px; }
+  .card-grid .platform-card .hot-list li { min-height: 56px; }
+  .card-grid .hot-list a.hot-title-link, .card-grid .platform-card.is-wide .hot-list a.hot-title-link { min-height: 44px; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.5; overflow-wrap: anywhere; }
+  .platform-card > footer .full-list { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; }
+  .ranking-drawer-layer .ranking-drawer { height: min(88dvh, 760px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+}
+
 .ranking-drawer .ranking-category-grid>a{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px;row-gap:3px;padding:11px}
 .ranking-drawer .ranking-category-title{grid-column:1;display:flex;align-items:center;gap:0;flex-wrap:nowrap}
 .ranking-drawer .ranking-category-count{grid-column:2;justify-self:end;padding:1px 5px;border-radius:999px;background:color-mix(in srgb,var(--muted) 10%,transparent);color:var(--muted);font-size:9.5px;white-space:nowrap}
