@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="public/logo.svg" width="112" alt="热榜汇 · Hotlist Hub logo">
+  <img src="public/logo.svg" width="112" alt="Hotlist Hub · 热榜汇 logo">
 </p>
 
-<h1 align="center">热榜汇 · Hotlist Hub</h1>
+<h1 align="center">Hotlist Hub · 热榜汇</h1>
 
 <p align="center"><strong>新闻、社交、科技与文娱热榜，一屏尽览。</strong></p>
 
