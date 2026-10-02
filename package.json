@@ -8,9 +8,13 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
+    "build:vercel": "next build",
+    "build:static": "node scripts/build-static.mjs",
+    "build:pages": "node scripts/build-static.mjs github",
     "start": "vinext start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "test": "node --experimental-strip-types --test app/api/hot/utils.test.ts app/metric-format.test.ts app/platform-sort.test.ts app/source-catalog.test.ts",
+    "test:firebase": "npx --yes firebase-tools@15.27.0 emulators:exec --config firebase.emulator.json --only auth,firestore --project demo-hotlist-hub \"node scripts/test-firebase.mjs\"",
     "sync-logos": "node scripts/sync-logos.mjs"
   },
   "dependencies": {
@@ -29,6 +33,7 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
     "@vitejs/plugin-rsc": "0.5.26",
+    "esbuild": "0.27.3",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",
     "react-server-dom-webpack": "19.2.6",
