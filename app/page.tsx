@@ -318,16 +318,40 @@ function formatUpdated(value?: number | string) {
   return `${Math.floor(minutes / 1440)} 天前抓取`;
 }
 
-async function fetchPlatform(platform: Platform): Promise<Platform> {
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs = 10000,
+  signal?: AbortSignal,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new Error('Request timeout')), timeoutMs);
+  const onAbort = () => controller.abort();
+  if (signal) {
+    if (signal.aborted) {
+      clearTimeout(timer);
+      throw new Error('Aborted');
+    }
+    signal.addEventListener('abort', onAbort, { once: true });
+  }
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+    if (signal) signal.removeEventListener('abort', onAbort);
+  }
+}
+
+async function fetchPlatform(platform: Platform, signal?: AbortSignal): Promise<Platform> {
   try {
     const apiOrigin = process.env.NEXT_PUBLIC_HOT_API_ORIGIN || '';
     let url = `${apiOrigin}/api/hot?source=${encodeURIComponent(platform.source)}`;
     if (typeof window !== 'undefined' && (window.location.hostname.endsWith('.web.app') || window.location.hostname.endsWith('.firebaseapp.com'))) {
       url = `https://hotlist-hub.vercel.app/api/hot?source=${encodeURIComponent(platform.source)}`;
     }
-    let response = await fetch(url, { cache: 'no-store' });
+    let response = await fetchWithTimeout(url, { cache: 'no-store' }, 10000, signal);
     if (!response.ok && !url.startsWith('https://hotlist-hub.vercel.app')) {
-      response = await fetch(`https://hotlist-hub.vercel.app/api/hot?source=${encodeURIComponent(platform.source)}`, { cache: 'no-store' });
+      response = await fetchWithTimeout(`https://hotlist-hub.vercel.app/api/hot?source=${encodeURIComponent(platform.source)}`, { cache: 'no-store' }, 10000, signal);
     }
     if (!response.ok) throw new Error('Source unavailable');
     const payload = await response.json() as SourceResponse;
@@ -363,12 +387,15 @@ async function fetchPlatform(platform: Platform): Promise<Platform> {
   }
 }
 
-async function fetchPlatformWithRetry(platform: Platform): Promise<Platform> {
-  let result = await fetchPlatform(platform);
+async function fetchPlatformWithRetry(platform: Platform, signal?: AbortSignal): Promise<Platform> {
+  if (signal?.aborted) return { ...platform, status: 'error' };
+  let result = await fetchPlatform(platform, signal);
   for (const delay of FETCH_RETRY_DELAYS_MS) {
+    if (signal?.aborted) break;
     if (result.status === 'success') return result;
     await sleep(delay);
-    result = await fetchPlatform(platform);
+    if (signal?.aborted) break;
+    result = await fetchPlatform(platform, signal);
   }
   return result;
 }
@@ -377,14 +404,19 @@ async function runPlatformFetchPool(
   targets: Platform[],
   concurrency: number,
   onResult: (result: Platform) => void,
+  signal?: AbortSignal,
 ) {
   if (!targets.length) return;
   const workerCount = Math.min(concurrency, targets.length);
   let cursor = 0;
   const workers = Array.from({ length: workerCount }, async () => {
     while (cursor < targets.length) {
+      if (signal?.aborted) break;
       const platform = targets[cursor++];
-      onResult(await fetchPlatformWithRetry(platform));
+      const res = await fetchPlatformWithRetry(platform, signal);
+      if (!signal?.aborted) {
+        onResult(res);
+      }
     }
   });
   await Promise.all(workers);
@@ -413,6 +445,7 @@ export default function Home() {
   const platformGridRef = useRef<HTMLElement | null>(null);
   const shouldScrollAfterPageChange = useRef(false);
   const sessionLoadStarted = useRef(false);
+  const activeFetchControllerRef = useRef<AbortController | null>(null);
   const sessionLoadComplete = useRef(false);
   const cloudLoadedUserId = useRef<string | null>(null);
   const prevNavigation = useRef({ category: '全部', safePage: 1, query: '' });
@@ -482,8 +515,13 @@ export default function Home() {
       });
     };
 
+    if (trackGlobalRefresh) {
+      activeFetchControllerRef.current?.abort();
+      activeFetchControllerRef.current = new AbortController();
+    }
+    const signal = activeFetchControllerRef.current?.signal;
     const baseConcurrency = options?.concurrency ?? 8;
-    await runPlatformFetchPool(targets, baseConcurrency, applyResult);
+    await runPlatformFetchPool(targets, baseConcurrency, applyResult, signal);
     if (trackGlobalRefresh) setIsRefreshing(false);
   }, []);
 
