@@ -54,3 +54,21 @@
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
 .ranking-navigation-menu{width:229px}
 @media(max-width:760px){.ranking-navigation-menu{right:14px;left:auto;width:calc(80% - 22.4px)}}
+
+@media (min-width:744px) and (min-height:600px) and (pointer:coarse) {
+  .primary-tabs { flex-wrap:nowrap; overflow-x:auto; overscroll-behavior-x:contain; }
+  .primary-tabs button, .site-header-actions button { min-height:44px; }
+  .card-grid .card-head { flex-wrap:wrap; }
+  .card-grid .card-actions { margin-left:auto; }
+  .card-grid .card-action-btn { width:44px; height:44px; }
+  .card-grid .hot-list a.hot-title-link, .card-grid .hot-list .hot-title-cell>.hot-title { white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-height:1.45; }
+  .search input { font-size:16px; }
+}
+
+@media (min-width:744px) and (max-width:760px) and (min-height:600px) and (pointer:coarse) {
+  .site-header-main { flex-direction:row; align-items:center; }
+  .site-header-actions { align-self:auto; }
+  .ranking-navigation-menu { position:absolute; top:calc(100% + 9px); right:0; left:auto; width:229px; max-width:calc(100vw - 28px); }
+  .app-shell .card-grid.three-column { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .card-grid .platform-card.is-wide { grid-column:span 2; }
+}
