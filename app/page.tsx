@@ -890,6 +890,10 @@ export default function Home() {
             preferenceSyncStatus={preferenceSyncStatus}
             onRestoreCloud={restoreCloudPreferences}
             onResetSorting={resetSorting}
+            currentCategory={category}
+            onSelectCategory={selectCategory}
+            categoryTabCount={categoryTabCount}
+            categoryList={[FAVORITES_CATEGORY, ...categories]}
           />
         </div>
       </header>
