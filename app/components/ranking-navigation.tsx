@@ -223,7 +223,12 @@ export function RankingNavigation() {
                 </span>
                 <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>外部榜单</span>
               </div>
-              <button className="ranking-drawer-close" type="button" aria-label="关闭" onClick={() => setMenuOpen(false)}>×</button>
+              <button className="ranking-drawer-close" type="button" aria-label="关闭" onClick={() => setMenuOpen(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             </header>
             <div className="ranking-drawer-content">
               <div className="ranking-site-list">
@@ -275,7 +280,12 @@ export function RankingNavigation() {
                 </span>
                 <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>今日分类</span>
               </div>
-              <button ref={drawerCloseRef} className="ranking-drawer-close" type="button" aria-label="关闭" title="关闭" onClick={closeDrawer}>×</button>
+              <button ref={drawerCloseRef} className="ranking-drawer-close" type="button" aria-label="关闭" title="关闭" onClick={closeDrawer}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             </header>
 
             <div className="ranking-category-search-wrap">

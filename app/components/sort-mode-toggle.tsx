@@ -2,7 +2,7 @@
 
 function SortHandleIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <circle cx="5.5" cy="4.5" r="1.1" fill="currentColor" />
       <circle cx="10.5" cy="4.5" r="1.1" fill="currentColor" />
       <circle cx="5.5" cy="8" r="1.1" fill="currentColor" />
