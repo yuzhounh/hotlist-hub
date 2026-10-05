@@ -15,13 +15,8 @@
   .card-grid .hot-list a.hot-title-link, .card-grid .hot-list .hot-title-cell > .hot-title, .card-grid .hot-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
   .card-grid .platform-card.is-wide .hot-list a.hot-title-link, .card-grid .platform-card.is-wide .hot-list .hot-title-cell > .hot-title { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.45; overflow-wrap: anywhere; }
   .platform-card > footer .full-list { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; }
-  .ranking-drawer-layer .ranking-drawer { height: min(88dvh, 760px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
 
-.ranking-drawer .ranking-category-grid>a{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px;row-gap:3px;padding:11px}
-.ranking-drawer .ranking-category-title{grid-column:1;display:flex;align-items:center;gap:0;flex-wrap:nowrap}
-.ranking-drawer .ranking-category-count{grid-column:2;justify-self:end;padding:1px 5px;border-radius:999px;background:color-mix(in srgb,var(--muted) 10%,transparent);color:var(--muted);font-size:9.5px;white-space:nowrap}
-.ranking-drawer .ranking-category-description{grid-column:1/-1}
 
 @media(max-width:760px){
   .platform-card .card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:nowrap}
@@ -89,9 +84,46 @@
 .mobile-drawer-panel { position: relative; z-index: 10; width: min(72vw, 248px); height: 100%; background: var(--card); border-left: 1px solid var(--line); border-top-left-radius: 16px; border-bottom-left-radius: 16px; box-shadow: -14px 0 40px var(--shadow); display: flex; flex-direction: column; justify-content: flex-start; padding: 18px 16px; overflow-y: auto; animation: mobile-drawer-slide .2s cubic-bezier(0.16, 1, 0.3, 1); }
 @keyframes mobile-drawer-slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
-.mobile-drawer-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
-.mobile-drawer-close { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 50%; background: var(--bg); color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; transition: all .15s; }
-.mobile-drawer-close:hover { border-color: var(--accent); color: var(--accent); background: var(--soft); }
+.mobile-drawer-panel,
+.ranking-drawer,
+.ranking-drawer.ranking-site-drawer {
+  width: min(72vw, 248px) !important;
+  height: 100% !important;
+}
+
+.mobile-drawer-head,
+.ranking-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 14px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+  border-top-left-radius: 16px;
+  flex: 0 0 auto;
+}
+.mobile-drawer-close,
+.ranking-drawer-close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all .15s;
+}
+.mobile-drawer-close:hover,
+.ranking-drawer-close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--soft);
+}
 
 .mobile-drawer-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; gap: 12px; padding: 12px 0; }
 .mobile-menu-section { display: flex; flex-direction: column; gap: 6px; }
@@ -109,27 +141,38 @@
 .mobile-foot-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); min-height: 44px; box-sizing: border-box; }
 .mobile-foot-label { font-size: 13px; font-weight: 500; color: var(--text); }
 
-/* Ranking Drawer & Ranking Site Drawer（统一右侧圆角抽屉） */
+/* Ranking Drawer & Ranking Site Drawer（统一右侧 248px 圆角抽屉） */
 .ranking-drawer-layer { position: fixed; inset: 0; z-index: 1020; }
 .ranking-drawer-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(2px); cursor: pointer; }
-.ranking-drawer { position: fixed; top: 0; right: 0; width: min(85vw, 360px); height: 100%; display: flex; flex-direction: column; background: var(--card); border-left: 1px solid var(--line); border-top-left-radius: 16px; border-bottom-left-radius: 16px; box-shadow: -14px 0 40px var(--shadow); animation: mobile-drawer-slide .2s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden; }
-.ranking-drawer.ranking-site-drawer { width: min(78vw, 290px); }
-.ranking-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 18px 14px; border-bottom: 1px solid var(--line); background: var(--card); border-top-left-radius: 16px; }
-.ranking-drawer-head h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
-.ranking-drawer-head p { margin: 3px 0 0; color: var(--muted); font-size: 11.5px; }
-.ranking-drawer-close { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--bg); color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; transition: all .15s; }
-.ranking-drawer-close:hover { border-color: var(--accent); color: var(--accent); background: var(--soft); }
+.ranking-drawer { position: fixed; top: 0; right: 0; background: var(--card); border-left: 1px solid var(--line); border-top-left-radius: 16px; border-bottom-left-radius: 16px; box-shadow: -14px 0 40px var(--shadow); animation: mobile-drawer-slide .2s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden; display: flex; flex-direction: column; }
+.ranking-drawer-content { flex: 1; overflow-y: auto; padding: 10px 14px 24px; display: flex; flex-direction: column; }
 
-.ranking-site-list { display: flex; flex-direction: column; gap: 6px; }
-.ranking-site-card { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); transition: all .15s; text-decoration: none; }
-.ranking-site-card:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--soft); }
-.ranking-site-card strong { display: block; font-size: 13.5px; color: var(--text); }
-.ranking-site-card small { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
-.ranking-site-arrow { color: var(--muted); font-size: 13px; }
-.ranking-categories-trigger-card { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 11px 13px; border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius: 11px; background: var(--soft); color: var(--accent); cursor: pointer; transition: all .15s; text-align: left; }
-.ranking-categories-trigger-card strong { display: block; font-size: 13.5px; font-weight: 600; }
-.ranking-categories-trigger-card small { display: block; font-size: 11px; opacity: .8; margin-top: 1px; }
-.ranking-categories-trigger-card b { font-size: 16px; }
+.ranking-site-list { display: flex; flex-direction: column; gap: 5px; }
+.ranking-site-card { display: flex; align-items: center; justify-content: space-between; padding: 8px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); transition: all .15s; text-decoration: none; }
+.ranking-site-card:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--card); }
+.ranking-site-info { display: flex; flex-direction: column; min-width: 0; }
+.ranking-site-card strong { font-size: 13px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-site-card small { font-size: 10.5px; color: var(--muted); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-site-arrow { color: var(--muted); font-size: 13px; flex-shrink: 0; }
+.ranking-categories-trigger-card { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 9px 11px; border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius: 10px; background: var(--soft); color: var(--accent); cursor: pointer; transition: all .15s; text-align: left; }
+.ranking-categories-trigger-card strong { display: block; font-size: 13px; font-weight: 600; }
+.ranking-categories-trigger-card small { display: block; font-size: 10.5px; opacity: .85; margin-top: 1px; }
+.ranking-categories-trigger-card b { font-size: 15px; }
+
+.ranking-category-search-wrap { padding: 10px 14px 2px; flex: 0 0 auto; }
+.ranking-category-search { position: relative; display: flex; align-items: center; width: 100%; }
+.ranking-category-search > span { position: absolute; left: 10px; color: var(--muted); font-size: 15px; pointer-events: none; }
+.ranking-category-search input { width: 100%; padding: 7px 28px 7px 28px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: var(--text); font-size: 12.5px; outline: none; }
+.ranking-category-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
+.ranking-category-search button { position: absolute; right: 4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 15px; cursor: pointer; }
+.ranking-category-group h3 { margin: 10px 2px 5px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.05em; }
+
+.ranking-cat-card { display: flex; flex-direction: column; gap: 2px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); text-decoration: none; transition: all .15s; margin-bottom: 5px; }
+.ranking-cat-card:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--card); }
+.ranking-cat-row { display: flex; align-items: center; justify-content: space-between; }
+.ranking-cat-row strong { font-size: 13px; font-weight: 500; }
+.ranking-cat-desc { font-size: 10.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 
 
 

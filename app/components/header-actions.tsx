@@ -148,6 +148,12 @@ export function HeaderActions({
             </div>
 
             <div className="mobile-drawer-foot">
+              {/* 切换榜单 */}
+              <div className="mobile-foot-row">
+                <span className="mobile-foot-label">切换榜单</span>
+                <RankingNavigation />
+              </div>
+
               {/* 刷新数据 */}
               <div className="mobile-foot-row">
                 <span className="mobile-foot-label">刷新数据</span>
@@ -165,12 +171,6 @@ export function HeaderActions({
                 >
                   <span className="header-refresh-icon" aria-hidden="true" style={{ fontSize: 18 }}>↻</span>
                 </button>
-              </div>
-
-              {/* 切换榜单 */}
-              <div className="mobile-foot-row">
-                <span className="mobile-foot-label">切换榜单</span>
-                <RankingNavigation />
               </div>
 
               {/* 外观主题 */}

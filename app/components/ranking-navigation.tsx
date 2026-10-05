@@ -202,13 +202,15 @@ export function RankingNavigation() {
           <div className="ranking-drawer-backdrop" onClick={() => setMenuOpen(false)} />
           <aside className="ranking-drawer ranking-site-drawer" role="dialog" aria-modal="true" aria-label="外部榜单导航">
             <header className="ranking-drawer-head">
-              <div>
-                <h2>外部榜单</h2>
-                <p>全网热榜平台快捷入口</p>
+              <div className="brand-title" style={{ margin: 0, gap: '8px' }}>
+                <span className="brand-icon" aria-hidden="true" style={{ width: 28, height: 28, padding: 5, borderRadius: 8, display: 'grid', placeItems: 'center' }}>
+                  <NavigationIcon />
+                </span>
+                <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>外部榜单</span>
               </div>
               <button className="ranking-drawer-close" type="button" aria-label="关闭" onClick={() => setMenuOpen(false)}>×</button>
             </header>
-            <div className="ranking-drawer-content" style={{ padding: '12px 16px 24px' }}>
+            <div className="ranking-drawer-content">
               <div className="ranking-site-list">
                 {RANKING_SITES.map((site) => (
                   <a
@@ -219,7 +221,7 @@ export function RankingNavigation() {
                     rel="noopener noreferrer"
                     onClick={() => setMenuOpen(false)}
                   >
-                    <div>
+                    <div className="ranking-site-info">
                       <strong>{site.name}</strong>
                       <small>{site.host}</small>
                     </div>
@@ -227,10 +229,10 @@ export function RankingNavigation() {
                   </a>
                 ))}
               </div>
-              <div className="ranking-navigation-menu-divider" style={{ margin: '14px 0' }} />
+              <div className="ranking-navigation-menu-divider" style={{ margin: '10px 0' }} />
               <button className="ranking-categories-trigger-card" type="button" onClick={openDrawer}>
-                <div>
-                  <strong>浏览今日热榜全部分类</strong>
+                <div className="ranking-site-info">
+                  <strong>今日热榜全部分类</strong>
                   <small>16 个分类入口</small>
                 </div>
                 <b aria-hidden="true">→</b>
@@ -247,18 +249,27 @@ export function RankingNavigation() {
           <div className="ranking-drawer-backdrop" onClick={closeDrawer} />
           <aside ref={drawerRef} className="ranking-drawer" role="dialog" aria-modal="true" aria-labelledby="ranking-drawer-title">
             <header className="ranking-drawer-head">
-              <div>
-                <h2 id="ranking-drawer-title">今日热榜分类</h2>
-                <p>选择分类后将在新标签页中打开</p>
+              <div className="brand-title" style={{ margin: 0, gap: '8px' }}>
+                <span className="brand-icon" aria-hidden="true" style={{ width: 28, height: 28, padding: 5, borderRadius: 8, display: 'grid', placeItems: 'center' }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                  </svg>
+                </span>
+                <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>今日分类</span>
               </div>
               <button ref={drawerCloseRef} className="ranking-drawer-close" type="button" aria-label="关闭" title="关闭" onClick={closeDrawer}>×</button>
             </header>
 
-            <label className="ranking-category-search">
-              <span aria-hidden="true">⌕</span>
-              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索分类…" />
-              {query ? <button type="button" aria-label="清除搜索" onClick={() => setQuery('')}>×</button> : null}
-            </label>
+            <div className="ranking-category-search-wrap">
+              <label className="ranking-category-search">
+                <span aria-hidden="true">⌕</span>
+                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索分类…" />
+                {query ? <button type="button" aria-label="清除搜索" onClick={() => setQuery('')}>×</button> : null}
+              </label>
+            </div>
 
             <div className="ranking-drawer-content">
               {filteredGroups.map((group) => (
@@ -266,12 +277,12 @@ export function RankingNavigation() {
                   <h3>{group.title}</h3>
                   <div className="ranking-category-grid">
                     {group.items.map((item) => (
-                      <a key={item.url} href={item.url} target="_blank" rel="noopener noreferrer">
-                        <span className="ranking-category-title">
+                      <a key={item.url} href={item.url} target="_blank" rel="noopener noreferrer" className="ranking-cat-card">
+                        <div className="ranking-cat-row">
                           <strong>{item.name}</strong>
-                          {item.count !== undefined ? <small className="ranking-category-count">{item.count} 个来源</small> : null}
-                        </span>
-                        <span className="ranking-category-description">{item.description}</span>
+                          {item.count !== undefined ? <small className="mobile-category-count">{item.count}</small> : null}
+                        </div>
+                        <span className="ranking-cat-desc">{item.description}</span>
                       </a>
                     ))}
                   </div>
