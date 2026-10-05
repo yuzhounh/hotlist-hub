@@ -5,7 +5,7 @@
 @media (max-width: 760px) {
   .primary-bar .primary-tabs { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; }
   .primary-tabs button, .toolbar-actions button, .pagination button { min-height: 44px; flex-shrink: 0; }
-  .site-header .header-icon-btn, .platform-card .card-head .card-action-btn, .ranking-drawer-head .ranking-drawer-close { width: 44px; height: 44px; }
+  .site-header .header-icon-btn, .ranking-drawer-head .ranking-drawer-close { width: 44px; height: 44px; }
   .site-header .auth-button, .site-header .auth-menu-trigger, .site-header .auth-menu-logout { min-height: 44px; }
   .site-header .auth-menu-trigger { min-width: 44px; }
   .view-toolbar { position: static !important; }
@@ -24,12 +24,9 @@
 .ranking-drawer .ranking-category-description{grid-column:1/-1}
 
 @media(max-width:760px){
-  .platform-card .card-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center}
-  .platform-card .card-head>a{grid-column:1/-1;grid-row:1}
-  .platform-card .card-head>.card-drag-handle{grid-column:1;grid-row:1}
-  .platform-card .card-head>.card-drag-handle+a{grid-column:2;grid-row:1}
-  .platform-card .card-actions{grid-column:1/-1;grid-row:2;justify-self:end;margin-top:7px}
-  .platform-card .card-action-btn{width:36px;height:36px}
+  .platform-card .card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:nowrap}
+  .platform-card .card-actions{margin-top:0;display:flex;align-items:center;gap:4px;flex:0 0 auto}
+  .platform-card .card-action-btn{width:32px;height:32px}
   .primary-bar{position:sticky}
   .platform-card>footer,.item-meta{font-size:11px}
 }
@@ -60,9 +57,9 @@
 @media (min-width:744px) and (min-height:600px) and (pointer:coarse) {
   .primary-tabs { flex-wrap:nowrap; overflow-x:auto; overscroll-behavior-x:contain; }
   .primary-tabs button, .site-header-actions button { min-height:44px; }
-  .card-grid .card-head { flex-wrap:wrap; }
+  .card-grid .card-head { flex-wrap:nowrap; }
   .card-grid .card-actions { margin-left:auto; }
-  .card-grid .card-action-btn { width:44px; height:44px; }
+  .card-grid .card-action-btn { width:32px; height:32px; }
   .card-grid .platform-card.is-wide .hot-list a.hot-title-link, .card-grid .platform-card.is-wide .hot-list .hot-title-cell>.hot-title { white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-height:1.45; }
   .search input { font-size:16px; }
 }
