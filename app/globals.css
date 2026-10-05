@@ -177,12 +177,21 @@
 .ranking-category-search button { position: absolute; right: 4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 15px; cursor: pointer; }
 .ranking-category-group h3 { margin: 10px 2px 5px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.05em; }
 
-.ranking-cat-card { display: flex; flex-direction: column; gap: 2px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); text-decoration: none; transition: all .15s; margin-bottom: 5px; }
+.ranking-cat-card { display: flex; flex-direction: column; gap: 2px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); text-decoration: none; transition: all .15s; margin-bottom: 0 !important; }
 .ranking-cat-card:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--card); }
 .ranking-cat-row { display: flex; align-items: center; justify-content: space-between; }
 .ranking-cat-row strong { font-size: 13px; font-weight: 500; }
 .ranking-cat-desc { font-size: 10.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+.ranking-category-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+}
 
-
-
+/* Multi-level Drawer Backdrop Deduplication: only Level 1 darkens and blurs, subsequent levels remain unchanged */
+.mobile-drawer-layer ~ .ranking-drawer-layer .ranking-drawer-backdrop,
+.ranking-drawer-layer ~ .ranking-drawer-layer .ranking-drawer-backdrop {
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
