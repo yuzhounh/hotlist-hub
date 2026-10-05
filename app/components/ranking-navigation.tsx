@@ -55,9 +55,14 @@ const CATEGORY_GROUPS: Array<{ title: string; items: RankingCategory[] }> = [
   },
 ];
 
-function NavigationIcon() {
+function NavigationIcon({ stroke }: { stroke?: string }) {
   return (
-    <svg className="ranking-navigation-icon" viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      className="ranking-navigation-icon"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      style={stroke ? { stroke, color: stroke } : undefined}
+    >
       <path d="m20 4-5.6 10.9L4 20l5.6-10.9L20 4Z" />
       <path d="m9.6 9.1 4.8 5.8" />
     </svg>
@@ -145,11 +150,16 @@ export function RankingNavigation() {
   const closeDrawer = () => {
     setDrawerOpen(false);
     setQuery('');
+    if (isMobile) {
+      setMenuOpen(true);
+    }
     requestAnimationFrame(() => triggerRef.current?.focus());
   };
 
   const openDrawer = () => {
-    setMenuOpen(false);
+    if (!isMobile) {
+      setMenuOpen(false);
+    }
     setDrawerOpen(true);
   };
 
@@ -204,7 +214,7 @@ export function RankingNavigation() {
             <header className="ranking-drawer-head">
               <div className="brand-title" style={{ margin: 0, gap: '8px' }}>
                 <span className="brand-icon" aria-hidden="true" style={{ width: 28, height: 28, padding: 5, borderRadius: 8, display: 'grid', placeItems: 'center' }}>
-                  <NavigationIcon />
+                  <NavigationIcon stroke="#fff" />
                 </span>
                 <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>外部榜单</span>
               </div>
