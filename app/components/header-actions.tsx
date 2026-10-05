@@ -25,6 +25,27 @@ type HeaderActionsProps = {
   categoryList?: string[];
 };
 
+function RefreshIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg
+      className="header-refresh-icon"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      style={{ width: size, height: size, display: 'block', transformOrigin: 'center' }}
+    >
+      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+      <path d="M21 3v5h-5" />
+    </svg>
+  );
+}
+
 export function HeaderActions({
   isRefreshing,
   onRefresh,
@@ -58,7 +79,7 @@ export function HeaderActions({
           aria-label={isRefreshing ? '更新中' : '刷新数据'}
           title={isRefreshing ? '正在更新当前页…' : '刷新当前页数据'}
         >
-          <span className="header-refresh-icon" aria-hidden="true">↻</span>
+          <RefreshIcon size={20} />
         </button>
         <ThemeToggle theme={theme} ready={themeReady} onToggle={onToggleTheme} />
         <AuthButton
@@ -167,9 +188,8 @@ export function HeaderActions({
                   disabled={isRefreshing}
                   aria-label={isRefreshing ? '更新中' : '刷新数据'}
                   title={isRefreshing ? '正在更新当前页…' : '刷新当前页数据'}
-                  style={{ width: 34, height: 34 }}
                 >
-                  <span className="header-refresh-icon" aria-hidden="true" style={{ fontSize: 18 }}>↻</span>
+                  <RefreshIcon size={18} />
                 </button>
               </div>
 

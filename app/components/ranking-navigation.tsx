@@ -55,13 +55,18 @@ const CATEGORY_GROUPS: Array<{ title: string; items: RankingCategory[] }> = [
   },
 ];
 
-function NavigationIcon({ stroke }: { stroke?: string }) {
+function NavigationIcon({ stroke, size = 20 }: { stroke?: string; size?: number }) {
   return (
     <svg
       className="ranking-navigation-icon"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       aria-hidden="true"
-      style={stroke ? { stroke, color: stroke } : undefined}
+      style={{
+        ...(stroke ? { stroke, color: stroke } : {}),
+        ...(size ? { width: size, height: size } : {}),
+      }}
     >
       <path d="m20 4-5.6 10.9L4 20l5.6-10.9L20 4Z" />
       <path d="m9.6 9.1 4.8 5.8" />
@@ -214,7 +219,7 @@ export function RankingNavigation() {
             <header className="ranking-drawer-head">
               <div className="brand-title" style={{ margin: 0, gap: '8px' }}>
                 <span className="brand-icon" aria-hidden="true" style={{ width: 28, height: 28, padding: 5, borderRadius: 8, display: 'grid', placeItems: 'center' }}>
-                  <NavigationIcon stroke="#fff" />
+                  <NavigationIcon stroke="#fff" size={15} />
                 </span>
                 <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>外部榜单</span>
               </div>
