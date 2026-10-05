@@ -5,7 +5,7 @@
 @media (max-width: 760px) {
   .primary-bar .primary-tabs { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; }
   .primary-tabs button, .toolbar-actions button, .pagination button { min-height: 44px; flex-shrink: 0; }
-  .site-header .header-icon-btn, .ranking-drawer-head .ranking-drawer-close { width: 44px; height: 44px; }
+  .site-header .header-icon-btn { width: 44px; height: 44px; }
   .site-header .auth-button, .site-header .auth-menu-trigger, .site-header .auth-menu-logout { min-height: 44px; }
   .site-header .auth-menu-trigger { min-width: 44px; }
   .view-toolbar { position: static !important; }
@@ -106,8 +106,8 @@
 .ranking-drawer-close {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 32px !important;
+  height: 32px !important;
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 50%;
@@ -159,10 +159,10 @@
 .ranking-categories-trigger-card small { display: block; font-size: 10.5px; opacity: .85; margin-top: 1px; }
 .ranking-categories-trigger-card b { font-size: 15px; }
 
-.ranking-category-search-wrap { padding: 10px 14px 2px; flex: 0 0 auto; }
-.ranking-category-search { position: relative; display: flex; align-items: center; width: 100%; }
+.ranking-category-search-wrap { padding: 10px 14px 6px; flex: 0 0 auto; box-sizing: border-box; width: 100%; }
+.ranking-category-search { position: relative; display: flex; align-items: center; width: 100% !important; margin: 0 !important; box-sizing: border-box !important; }
 .ranking-category-search > span { position: absolute; left: 10px; color: var(--muted); font-size: 15px; pointer-events: none; }
-.ranking-category-search input { width: 100%; padding: 7px 28px 7px 28px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: var(--text); font-size: 12.5px; outline: none; }
+.ranking-category-search input { width: 100% !important; box-sizing: border-box !important; padding: 7px 28px 7px 28px !important; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: var(--text); font-size: 12.5px; outline: none; }
 .ranking-category-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
 .ranking-category-search button { position: absolute; right: 4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 15px; cursor: pointer; }
 .ranking-category-group h3 { margin: 10px 2px 5px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.05em; }
