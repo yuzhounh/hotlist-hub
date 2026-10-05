@@ -108,30 +108,11 @@ export function HeaderActions({
             </div>
 
             <div className="mobile-drawer-body">
-              {/* 刷新热榜数据 */}
-              <div className="mobile-menu-section">
-                <span className="mobile-menu-section-title">数据刷新</span>
-                <button
-                  type="button"
-                  className={`mobile-refresh-btn${isRefreshing ? ' is-spinning' : ''}`}
-                  onClick={() => {
-                    onRefresh();
-                    setMobileMenuOpen(false);
-                  }}
-                  disabled={isRefreshing}
-                >
-                  <span className="mobile-menu-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="header-refresh-icon" aria-hidden="true" style={{ fontSize: '17px', lineHeight: 1 }}>↻</span>
-                    {isRefreshing ? '正在更新数据…' : '刷新当前热榜'}
-                  </span>
-                </button>
-              </div>
-
-              {/* 热榜分类导航 */}
+              {/* 热榜分类导航（单栏排版，居顶） */}
               {categoryList.length > 0 && onSelectCategory && (
-                <div className="mobile-menu-section">
+                <div className="mobile-menu-section" style={{ gap: '8px' }}>
                   <span className="mobile-menu-section-title">热榜分类</span>
-                  <div className="mobile-category-grid">
+                  <div className="mobile-category-list">
                     {categoryList.map((cat) => {
                       const isActive = currentCategory === cat;
                       const count = categoryTabCount ? categoryTabCount(cat) : 0;
@@ -139,7 +120,7 @@ export function HeaderActions({
                         <button
                           key={cat}
                           type="button"
-                          className={`mobile-category-btn${isActive ? ' is-active' : ''}`}
+                          className={`mobile-category-item${isActive ? ' is-active' : ''}`}
                           onClick={() => {
                             onSelectCategory(cat);
                             setMobileMenuOpen(false);
@@ -158,31 +139,49 @@ export function HeaderActions({
               {sortModeAvailable && (
                 <div className="mobile-menu-section">
                   <span className="mobile-menu-section-title">列表控制</span>
-                  <div className="mobile-menu-item">
-                    <span className="mobile-menu-label">自定义卡片排序</span>
+                  <div className="mobile-foot-row">
+                    <span className="mobile-foot-label">卡片排序</span>
                     <SortModeToggle enabled={sortModeEnabled} onToggle={onToggleSortMode} />
                   </div>
                 </div>
               )}
-
-              {/* 全网榜单 */}
-              <div className="mobile-menu-section">
-                <span className="mobile-menu-section-title">全网榜单分类</span>
-                <div className="mobile-menu-item">
-                  <span className="mobile-menu-label">切换榜单分类</span>
-                  <RankingNavigation />
-                </div>
-              </div>
             </div>
 
             <div className="mobile-drawer-foot">
-              <div className="mobile-menu-item">
-                <span className="mobile-menu-label">外观主题</span>
+              {/* 刷新数据 */}
+              <div className="mobile-foot-row">
+                <span className="mobile-foot-label">刷新数据</span>
+                <button
+                  className={`header-icon-btn header-refresh${isRefreshing ? ' is-spinning' : ''}`}
+                  type="button"
+                  onClick={() => {
+                    onRefresh();
+                    setMobileMenuOpen(false);
+                  }}
+                  disabled={isRefreshing}
+                  aria-label={isRefreshing ? '更新中' : '刷新数据'}
+                  title={isRefreshing ? '正在更新当前页…' : '刷新当前页数据'}
+                  style={{ width: 34, height: 34 }}
+                >
+                  <span className="header-refresh-icon" aria-hidden="true" style={{ fontSize: 18 }}>↻</span>
+                </button>
+              </div>
+
+              {/* 切换榜单 */}
+              <div className="mobile-foot-row">
+                <span className="mobile-foot-label">切换榜单</span>
+                <RankingNavigation />
+              </div>
+
+              {/* 外观主题 */}
+              <div className="mobile-foot-row">
+                <span className="mobile-foot-label">外观主题</span>
                 <ThemeToggle theme={theme} ready={themeReady} onToggle={onToggleTheme} />
               </div>
 
-              <div className="mobile-menu-item mobile-menu-auth">
-                <span className="mobile-menu-label">账户与同步</span>
+              {/* 账户与同步 */}
+              <div className="mobile-foot-row">
+                <span className="mobile-foot-label">账户与同步</span>
                 <AuthButton
                   syncStatus={preferenceSyncStatus}
                   onRestoreCloud={onRestoreCloud}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type RankingCategory = {
   name: string;
@@ -67,19 +68,27 @@ export function RankingNavigation() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
   const menuWrapRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const drawerCloseRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    if (!menuOpen) return;
+    const checkMobile = () => setIsMobile(window.innerWidth < 820);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen || isMobile) return;
     const closeOnOutsideClick = (event: PointerEvent) => {
       if (!menuWrapRef.current?.contains(event.target as Node)) setMenuOpen(false);
     };
     document.addEventListener('pointerdown', closeOnOutsideClick);
     return () => document.removeEventListener('pointerdown', closeOnOutsideClick);
-  }, [menuOpen]);
+  }, [menuOpen, isMobile]);
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -161,7 +170,8 @@ export function RankingNavigation() {
           <NavigationIcon />
         </button>
 
-        {menuOpen ? (
+        {/* 桌面端下拉浮层 */}
+        {menuOpen && !isMobile ? (
           <div className="ranking-navigation-menu" id="ranking-navigation-menu" role="menu">
             <div className="ranking-navigation-menu-title">外部榜单</div>
             {RANKING_SITES.map((site) => (
@@ -186,9 +196,55 @@ export function RankingNavigation() {
         ) : null}
       </div>
 
-      {drawerOpen ? (
-        <div className="ranking-drawer-layer" role="presentation">
-          <button className="ranking-drawer-backdrop" type="button" aria-label="关闭榜单分类" onClick={closeDrawer} />
+      {/* 移动端外部榜单右侧抽屉 */}
+      {menuOpen && isMobile && typeof document !== 'undefined' && createPortal(
+        <div className="ranking-drawer-layer" role="presentation" style={{ zIndex: 1020 }}>
+          <div className="ranking-drawer-backdrop" onClick={() => setMenuOpen(false)} />
+          <aside className="ranking-drawer ranking-site-drawer" role="dialog" aria-modal="true" aria-label="外部榜单导航">
+            <header className="ranking-drawer-head">
+              <div>
+                <h2>外部榜单</h2>
+                <p>全网热榜平台快捷入口</p>
+              </div>
+              <button className="ranking-drawer-close" type="button" aria-label="关闭" onClick={() => setMenuOpen(false)}>×</button>
+            </header>
+            <div className="ranking-drawer-content" style={{ padding: '12px 16px 24px' }}>
+              <div className="ranking-site-list">
+                {RANKING_SITES.map((site) => (
+                  <a
+                    key={site.url}
+                    className="ranking-site-card"
+                    href={site.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <div>
+                      <strong>{site.name}</strong>
+                      <small>{site.host}</small>
+                    </div>
+                    <span className="ranking-site-arrow" aria-hidden="true">↗</span>
+                  </a>
+                ))}
+              </div>
+              <div className="ranking-navigation-menu-divider" style={{ margin: '14px 0' }} />
+              <button className="ranking-categories-trigger-card" type="button" onClick={openDrawer}>
+                <div>
+                  <strong>浏览今日热榜全部分类</strong>
+                  <small>16 个分类入口</small>
+                </div>
+                <b aria-hidden="true">→</b>
+              </button>
+            </div>
+          </aside>
+        </div>,
+        document.body
+      )}
+
+      {/* 今日热榜分类抽屉（桌面与移动端统一右侧抽屉） */}
+      {drawerOpen && typeof document !== 'undefined' && createPortal(
+        <div className="ranking-drawer-layer" role="presentation" style={{ zIndex: 1030 }}>
+          <div className="ranking-drawer-backdrop" onClick={closeDrawer} />
           <aside ref={drawerRef} className="ranking-drawer" role="dialog" aria-modal="true" aria-labelledby="ranking-drawer-title">
             <header className="ranking-drawer-head">
               <div>
@@ -200,7 +256,7 @@ export function RankingNavigation() {
 
             <label className="ranking-category-search">
               <span aria-hidden="true">⌕</span>
-              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索分类" />
+              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索分类…" />
               {query ? <button type="button" aria-label="清除搜索" onClick={() => setQuery('')}>×</button> : null}
             </label>
 
@@ -213,8 +269,8 @@ export function RankingNavigation() {
                       <a key={item.url} href={item.url} target="_blank" rel="noopener noreferrer">
                         <span className="ranking-category-title">
                           <strong>{item.name}</strong>
+                          {item.count !== undefined ? <small className="ranking-category-count">{item.count} 个来源</small> : null}
                         </span>
-                        {item.count !== undefined ? <small className="ranking-category-count">{item.count} 个来源</small> : null}
                         <span className="ranking-category-description">{item.description}</span>
                       </a>
                     ))}
@@ -224,8 +280,10 @@ export function RankingNavigation() {
               {!filteredGroups.length ? <div className="ranking-category-empty">没有匹配的分类</div> : null}
             </div>
           </aside>
-        </div>
-      ) : null}
+        </div>,
+        document.body
+      )}
     </>
   );
 }
+
