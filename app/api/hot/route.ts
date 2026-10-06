@@ -845,6 +845,12 @@ function mapCnBetaArticleUrl(url: string) {
   return `https://www.cnbeta.com.tw/articles/tech/${id}.htm`;
 }
 
+function mapCnBetaMobileUrl(url: string) {
+  const id = url.match(/(\d+)\.htm(?:\?|$)/)?.[1];
+  if (!id) return url;
+  return `https://m.cnbeta.com.tw/wap/view/${id}.htm`;
+}
+
 async function fetchCnBeta(source: string) {
   if (source === 'cnbeta-health') {
     const upstream = await fetch('https://www.cnbeta.com.tw/topics/697.htm', {
@@ -868,7 +874,7 @@ async function fetchCnBeta(source: string) {
           id: url.match(/(\d+)\.htm(?:\?|$)/)?.[1] ?? url,
           title,
           url,
-          mobileUrl: url,
+          mobileUrl: mapCnBetaMobileUrl(url),
         }];
       })
       .slice(0, 30);
@@ -901,7 +907,7 @@ async function fetchCnBeta(source: string) {
         id: match[1].match(/(\d+)\.htm/)?.[1] ?? index,
         title: decodeHtml(match[2]),
         url,
-        mobileUrl: url,
+        mobileUrl: mapCnBetaMobileUrl(url),
       };
     })
     .filter((item) => item.title && item.url);

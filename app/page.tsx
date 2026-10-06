@@ -364,8 +364,14 @@ async function fetchPlatform(platform: Platform, signal?: AbortSignal): Promise<
         return undefined;
       }
     };
+    // cnBeta: desktop keeps the desktop article URL; phones go straight to the mobile text version.
+    const isCnBeta = platform.source.startsWith('cnbeta-');
+    const isMobileViewport = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
     const items = (payload.items ?? [])
-      .map((item) => ({ ...item, resolvedUrl: safeUrl(item.mobileUrl || item.url) }))
+      .map((item) => ({
+        ...item,
+        resolvedUrl: safeUrl(isCnBeta && !isMobileViewport ? item.url : item.mobileUrl || item.url),
+      }))
       .filter((item) => item.title && item.resolvedUrl)
       .slice(0, 30)
       .map((item) => ({
