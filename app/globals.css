@@ -10,10 +10,10 @@
   .site-header .auth-menu-trigger { min-width: 40px; }
   .view-toolbar { position: static !important; }
   body .view-toolbar input, body .ranking-category-search input { font-size: 16px; }
-  .card-grid .platform-card .hot-list li { min-height: 44px; }
+  .card-grid .platform-card:not(.is-wide) .hot-list li { min-height: 43px; }
+  .card-grid .platform-card:not(.is-wide) .hot-list a.hot-title-link, .card-grid .platform-card:not(.is-wide) .hot-list .hot-title-cell>.hot-title, .card-grid .hot-title { min-height: unset; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 1.45; }
   .card-grid .platform-card.is-wide .hot-list li { min-height: 54px; }
-  .card-grid .hot-list a.hot-title-link, .card-grid .hot-list .hot-title-cell > .hot-title, .card-grid .hot-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-  .card-grid .platform-card.is-wide .hot-list a.hot-title-link, .card-grid .platform-card.is-wide .hot-list .hot-title-cell > .hot-title { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.45; overflow-wrap: anywhere; }
+  .card-grid .platform-card.is-wide .hot-list a.hot-title-link, .card-grid .platform-card.is-wide .hot-list .hot-title-cell>.hot-title { min-height: unset; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.45; overflow-wrap: anywhere; }
   .platform-card > footer .full-list { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; }
 }
 
