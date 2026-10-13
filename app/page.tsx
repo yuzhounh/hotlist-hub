@@ -7,6 +7,7 @@ import { THEME_KEY } from './components/theme-toggle';
 import { useAuth } from './components/auth-provider';
 import { formatItemMetric } from './metric-format';
 import { comparePlatformName, orderFavoritePlatforms, reorderSources } from './platform-sort';
+import { fetchJsonWithTimeout } from './lib/request-json';
 import {
   readCloudPreferences,
   writeCloudPreferences,
@@ -318,30 +319,6 @@ function formatUpdated(value?: number | string) {
   return `${Math.floor(minutes / 1440)} 天前抓取`;
 }
 
-async function fetchWithTimeout(
-  url: string,
-  options: RequestInit = {},
-  timeoutMs = 10000,
-  signal?: AbortSignal,
-): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(new Error('Request timeout')), timeoutMs);
-  const onAbort = () => controller.abort();
-  if (signal) {
-    if (signal.aborted) {
-      clearTimeout(timer);
-      throw new Error('Aborted');
-    }
-    signal.addEventListener('abort', onAbort, { once: true });
-  }
-  try {
-    return await fetch(url, { ...options, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-    if (signal) signal.removeEventListener('abort', onAbort);
-  }
-}
-
 async function fetchPlatform(platform: Platform, signal?: AbortSignal): Promise<Platform> {
   try {
     const apiOrigin = process.env.NEXT_PUBLIC_HOT_API_ORIGIN || '';
@@ -349,12 +326,12 @@ async function fetchPlatform(platform: Platform, signal?: AbortSignal): Promise<
     if (typeof window !== 'undefined' && (window.location.hostname.endsWith('.web.app') || window.location.hostname.endsWith('.firebaseapp.com'))) {
       url = `https://hotlist-hub.vercel.app/api/hot?source=${encodeURIComponent(platform.source)}`;
     }
-    let response = await fetchWithTimeout(url, { cache: 'no-store' }, 10000, signal);
-    if (!response.ok && !url.startsWith('https://hotlist-hub.vercel.app')) {
-      response = await fetchWithTimeout(`https://hotlist-hub.vercel.app/api/hot?source=${encodeURIComponent(platform.source)}`, { cache: 'no-store' }, 10000, signal);
+    let result = await fetchJsonWithTimeout<SourceResponse>(url, { cache: 'no-store' }, 10000, signal);
+    if (!result.ok && !url.startsWith('https://hotlist-hub.vercel.app')) {
+      result = await fetchJsonWithTimeout<SourceResponse>(`https://hotlist-hub.vercel.app/api/hot?source=${encodeURIComponent(platform.source)}`, { cache: 'no-store' }, 10000, signal);
     }
-    if (!response.ok) throw new Error('Source unavailable');
-    const payload = await response.json() as SourceResponse;
+    if (!result.ok || !result.data) throw new Error('Source unavailable');
+    const payload = result.data;
     const safeUrl = (value?: string) => {
       if (!value || /javascript\s*:/i.test(value) || /[\u0000-\u001f]/.test(value)) return undefined;
       try {
