@@ -55,6 +55,8 @@ npm run build
 
 Vercel 使用 Next.js 构建；`vercel.json` 显式调用以下入口，由 Vercel 的 Next.js 运行时提供页面和 `/api/hot`：
 
+Vercel CLI 上传名单由 `.vercelignore` 单独限制为应用、公开资源及必要配置；临时文件、构建产物和验收结果不上传。发布前可用 `vercel deploy --dry --format=json` 核对名单，不创建部署。
+
 ```bash
 npm run build:vercel
 ```
