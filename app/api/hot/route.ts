@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'node:crypto';
 import { createContext, runInContext } from 'node:vm';
+import { createSourceCache } from '../../lib/source-cache';
 import { getSourceDefinition } from '../../source-catalog';
 import { fetchOfficial, hasOfficialFetcher } from './official-fetchers';
-import { browserHeaders, decodeHtml, dedupeItems, fetchJson, fetchText, parseFeed, scrapeAnchors, type UnifiedItem } from './utils';
+import { browserHeaders, decodeHtml, dedupeItems, fetchJson, fetchText, parseFeed, scrapeAnchors, type UnifiedItem, type HotResult } from './utils';
+
+const cachedSource = createSourceCache<HotResult>();
 
 async function fetchCaixin() {
   const upstream = await fetch('https://www.caixin.com/', {
@@ -1381,17 +1384,19 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let data;
-    if (hasOfficialFetcher(definition.source)) {
-      data = await fetchOfficial(definition.source);
-    } else {
-      data = await fetchDirect(definition.upstreamId);
-    }
-    const items = dedupeItems(data.items);
-    if (!items.length) throw new Error('Empty source');
-    return NextResponse.json({ ...data, items }, {
+    const forceRefresh = request.nextUrl.searchParams.get('refresh') === '1';
+    const cached = await cachedSource(definition.source, async () => {
+      const data = hasOfficialFetcher(definition.source)
+        ? await fetchOfficial(definition.source)
+        : await fetchDirect(definition.upstreamId);
+      const items = dedupeItems(data.items);
+      if (!items.length) throw new Error('Empty source');
+      return { ...data, items };
+    }, forceRefresh);
+    const maxAge = Math.max(0, Math.floor((cached.expiresAt - Date.now()) / 1000));
+    return NextResponse.json(cached.value, {
       headers: {
-        'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+        'Cache-Control': forceRefresh ? 'no-store' : `public, max-age=${maxAge}, stale-while-revalidate=300`,
         ...corsHeaders,
       },
     });
