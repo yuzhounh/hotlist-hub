@@ -1,0 +1,13 @@
+/*
+!app
+!public
+!package.json
+!package-lock.json
+!next.config.ts
+!tsconfig.json
+!next-env.d.ts
+!eslint.config.mjs
+!vercel.json
+!.vercelignore
+!LICENSE
+!README.md
