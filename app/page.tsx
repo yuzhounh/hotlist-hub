@@ -30,6 +30,7 @@ type Platform = PlatformDefinition & {
   status: 'idle' | 'loading' | 'success' | 'error';
   items: HotItem[];
   consecutiveFailures: number;
+  cachedUpdated?: string;
 };
 
 const CACHE_KEY = 'rebanghui-platform-cache-v3';
@@ -362,7 +363,7 @@ async function fetchPlatform(platform: Platform, signal?: AbortSignal, fresh = f
   } catch {
     return {
       ...platform,
-      updated: platform.items.length ? platform.updated : '获取失败',
+      updated: platform.items.length ? (platform.status === 'loading' ? platform.cachedUpdated ?? platform.updated : platform.updated) : '获取失败',
       status: 'error',
       consecutiveFailures: platform.consecutiveFailures + 1,
     };
@@ -500,7 +501,7 @@ export default function Home() {
     if (trackGlobalRefresh) setIsRefreshing(true);
     setLivePlatforms((current) => current.map((platform) => (
       targets.some((target) => target.source === platform.source)
-        ? { ...platform, status: 'loading', updated: '连接中' }
+        ? { ...platform, status: 'loading', updated: '连接中', cachedUpdated: platform.status === 'loading' ? platform.cachedUpdated : platform.updated }
         : platform
     )));
 
