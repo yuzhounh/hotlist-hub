@@ -44,6 +44,8 @@ next-env.d.ts
 *-debug.log
 /.wrangler/
 /outputs/
+/tmp/
+/results/
 /work/
 /tsconfig.tsbuildinfo
 /.tmp-icons/
