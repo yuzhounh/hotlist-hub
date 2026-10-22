@@ -474,8 +474,10 @@ export default function Home() {
 
   useEffect(() => {
     const flush = () => cacheWriter.flush();
+    const onVisibility = () => { if (document.hidden) flush(); };
     window.addEventListener('pagehide', flush);
-    return () => { window.removeEventListener('pagehide', flush); cacheWriter.flush(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => { window.removeEventListener('pagehide', flush); document.removeEventListener('visibilitychange', onVisibility); cacheWriter.flush(); };
   }, [cacheWriter]);
 
   const loadPlatforms = useCallback(async (sources: string[], force = false, options?: { trackGlobalRefresh?: boolean; concurrency?: number; fresh?: boolean }) => {
