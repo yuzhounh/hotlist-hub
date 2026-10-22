@@ -4,12 +4,14 @@ import { createBufferedWriter, serializePlatformCache } from './platform-cache.t
 
 test('refreshing cards retain their prior usable cache instead of disappearing', () => {
   const payload = JSON.parse(serializePlatformCache([
-    { source: 'good', updated: 'old', status: 'loading', items: [{ title: 'saved' }], consecutiveFailures: 0 },
-    { source: 'failed', updated: 'old', status: 'loading', items: [{ title: 'fallback' }], consecutiveFailures: 2 },
+    { source: 'good', updated: '连接中', cachedUpdated: 'old', status: 'loading', items: [{ title: 'saved' }], consecutiveFailures: 0 },
+    { source: 'failed', updated: '连接中', cachedUpdated: 'old', status: 'loading', items: [{ title: 'fallback' }], consecutiveFailures: 2 },
     { source: 'new', updated: 'waiting', status: 'loading', items: [], consecutiveFailures: 0 },
   ]));
   assert.deepEqual(payload.map((entry: { source: string; status: string }) => [entry.source, entry.status]), [['good', 'success'], ['failed', 'error']]);
   assert.equal(payload[0].items[0].title, 'saved');
+  assert.equal(payload[0].updated, 'old');
+  assert.equal(payload[1].updated, 'old');
   assert.equal(payload[1].consecutiveFailures, 2);
 });
 

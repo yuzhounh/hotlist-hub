@@ -4,13 +4,15 @@ type CacheEntry = {
   status: 'idle' | 'loading' | 'success' | 'error';
   items: unknown[];
   consecutiveFailures: number;
+  cachedUpdated?: string;
 };
 
 export function serializePlatformCache(list: CacheEntry[]) {
   return JSON.stringify(list
     .filter(platform => platform.status === 'success' || platform.status === 'error' || (platform.status === 'loading' && platform.items.length > 0))
-    .map(({ source, updated, status, items, consecutiveFailures }) => ({
-      source, updated, status: status === 'loading' ? (consecutiveFailures ? 'error' : 'success') : status, items, consecutiveFailures,
+    .map(({ source, updated, status, items, consecutiveFailures, cachedUpdated }) => ({
+      source, updated: status === 'loading' ? cachedUpdated ?? updated : updated,
+      status: status === 'loading' ? (consecutiveFailures ? 'error' : 'success') : status, items, consecutiveFailures,
     })));
 }
 
