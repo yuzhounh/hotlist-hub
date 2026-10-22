@@ -462,13 +462,11 @@ export default function Home() {
   const pagedPlatforms = visiblePlatforms.slice((safePage - 1) * pageSize, safePage * pageSize);
   const pagedSources = useMemo(() => pagedPlatforms.map((platform) => platform.source), [pagedPlatforms]);
   const livePlatformsRef = useRef(livePlatforms);
-  const cacheDirty = useRef(false);
   const cacheWriter = useMemo(() => createBufferedWriter(writePlatformCache), []);
 
   useEffect(() => {
     livePlatformsRef.current = livePlatforms;
-    if (cacheDirty.current) {
-      cacheDirty.current = false;
+    if (livePlatforms.some(platform => platform.status === 'success' || platform.status === 'error')) {
       cacheWriter.schedule(livePlatforms);
     }
   }, [cacheWriter, livePlatforms]);
@@ -506,7 +504,6 @@ export default function Home() {
     )));
 
     const applyResult = (result: Platform) => {
-      cacheDirty.current = true;
       setLivePlatforms((current) => {
         const next = current.map((item) => item.source === result.source ? result : item);
         return next;
