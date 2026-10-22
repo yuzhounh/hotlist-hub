@@ -1,6 +1,6 @@
 {
   "name": "hotlist-hub",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -13,7 +13,7 @@
     "build:pages": "node scripts/build-static.mjs github",
     "start": "vinext start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "test": "node --experimental-strip-types --test app/api/hot/utils.test.ts app/metric-format.test.ts app/platform-sort.test.ts app/source-catalog.test.ts app/lib/request-json.test.ts",
+    "test": "node --experimental-strip-types --test app/api/hot/utils.test.ts app/metric-format.test.ts app/platform-sort.test.ts app/source-catalog.test.ts app/lib/request-json.test.ts app/lib/source-cache.test.ts app/lib/platform-cache.test.ts",
     "test:firebase": "npx --yes firebase-tools@15.27.0 emulators:exec --config firebase.emulator.json --only auth,firestore --project demo-hotlist-hub \"node scripts/test-firebase.mjs\"",
     "sync-logos": "node scripts/sync-logos.mjs"
   },

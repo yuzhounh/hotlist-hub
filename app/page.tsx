@@ -8,6 +8,7 @@ import { useAuth } from './components/auth-provider';
 import { formatItemMetric } from './metric-format';
 import { comparePlatformName, orderFavoritePlatforms, reorderSources } from './platform-sort';
 import { fetchJsonWithTimeout } from './lib/request-json';
+import { createBufferedWriter, serializePlatformCache } from './lib/platform-cache';
 import {
   readCloudPreferences,
   writeCloudPreferences,
@@ -167,10 +168,7 @@ function mergeCacheIntoPlatforms(cached: PlatformCacheEntry[]): Platform[] {
 }
 
 function writePlatformCache(list: Platform[]) {
-  const payload = list
-    .filter((platform) => platform.status === 'success' || platform.status === 'error')
-    .map(({ source, updated, status, items, consecutiveFailures }) => ({ source, updated, status, items, consecutiveFailures }));
-  sessionStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+  sessionStorage.setItem(CACHE_KEY, serializePlatformCache(list));
 }
 
 type SourceResponse = {
@@ -319,16 +317,17 @@ function formatUpdated(value?: number | string) {
   return `${Math.floor(minutes / 1440)} 天前抓取`;
 }
 
-async function fetchPlatform(platform: Platform, signal?: AbortSignal): Promise<Platform> {
+async function fetchPlatform(platform: Platform, signal?: AbortSignal, fresh = false): Promise<Platform> {
   try {
     const apiOrigin = process.env.NEXT_PUBLIC_HOT_API_ORIGIN || '';
-    let url = `${apiOrigin}/api/hot?source=${encodeURIComponent(platform.source)}`;
+    const sourceQuery = `source=${encodeURIComponent(platform.source)}${fresh ? '&refresh=1' : ''}`;
+    let url = `${apiOrigin}/api/hot?${sourceQuery}`;
     if (typeof window !== 'undefined' && (window.location.hostname.endsWith('.web.app') || window.location.hostname.endsWith('.firebaseapp.com'))) {
-      url = `https://hotlist-hub.vercel.app/api/hot?source=${encodeURIComponent(platform.source)}`;
+      url = `https://hotlist-hub.vercel.app/api/hot?${sourceQuery}`;
     }
     let result = await fetchJsonWithTimeout<SourceResponse>(url, { cache: 'no-store' }, 10000, signal);
     if (!result.ok && !url.startsWith('https://hotlist-hub.vercel.app')) {
-      result = await fetchJsonWithTimeout<SourceResponse>(`https://hotlist-hub.vercel.app/api/hot?source=${encodeURIComponent(platform.source)}`, { cache: 'no-store' }, 10000, signal);
+      result = await fetchJsonWithTimeout<SourceResponse>(`https://hotlist-hub.vercel.app/api/hot?${sourceQuery}`, { cache: 'no-store' }, 10000, signal);
     }
     if (!result.ok || !result.data) throw new Error('Source unavailable');
     const payload = result.data;
@@ -370,15 +369,15 @@ async function fetchPlatform(platform: Platform, signal?: AbortSignal): Promise<
   }
 }
 
-async function fetchPlatformWithRetry(platform: Platform, signal?: AbortSignal): Promise<Platform> {
+async function fetchPlatformWithRetry(platform: Platform, signal?: AbortSignal, fresh = false): Promise<Platform> {
   if (signal?.aborted) return { ...platform, status: 'error' };
-  let result = await fetchPlatform(platform, signal);
+  let result = await fetchPlatform(platform, signal, fresh);
   for (const delay of FETCH_RETRY_DELAYS_MS) {
     if (signal?.aborted) break;
     if (result.status === 'success') return result;
     await sleep(delay);
     if (signal?.aborted) break;
-    result = await fetchPlatform(platform, signal);
+    result = await fetchPlatform(platform, signal, fresh);
   }
   return result;
 }
@@ -388,6 +387,7 @@ async function runPlatformFetchPool(
   concurrency: number,
   onResult: (result: Platform) => void,
   signal?: AbortSignal,
+  fresh = false,
 ) {
   if (!targets.length) return;
   const workerCount = Math.min(concurrency, targets.length);
@@ -396,7 +396,7 @@ async function runPlatformFetchPool(
     while (cursor < targets.length) {
       if (signal?.aborted) break;
       const platform = targets[cursor++];
-      const res = await fetchPlatformWithRetry(platform, signal);
+      const res = await fetchPlatformWithRetry(platform, signal, fresh);
       if (!signal?.aborted) {
         onResult(res);
       }
@@ -461,12 +461,24 @@ export default function Home() {
   const pagedPlatforms = visiblePlatforms.slice((safePage - 1) * pageSize, safePage * pageSize);
   const pagedSources = useMemo(() => pagedPlatforms.map((platform) => platform.source), [pagedPlatforms]);
   const livePlatformsRef = useRef(livePlatforms);
+  const cacheDirty = useRef(false);
+  const cacheWriter = useMemo(() => createBufferedWriter(writePlatformCache), []);
 
   useEffect(() => {
     livePlatformsRef.current = livePlatforms;
-  }, [livePlatforms]);
+    if (cacheDirty.current) {
+      cacheDirty.current = false;
+      cacheWriter.schedule(livePlatforms);
+    }
+  }, [cacheWriter, livePlatforms]);
 
-  const loadPlatforms = useCallback(async (sources: string[], force = false, options?: { trackGlobalRefresh?: boolean; concurrency?: number }) => {
+  useEffect(() => {
+    const flush = () => cacheWriter.flush();
+    window.addEventListener('pagehide', flush);
+    return () => { window.removeEventListener('pagehide', flush); cacheWriter.flush(); };
+  }, [cacheWriter]);
+
+  const loadPlatforms = useCallback(async (sources: string[], force = false, options?: { trackGlobalRefresh?: boolean; concurrency?: number; fresh?: boolean }) => {
     const uniqueSources = [...new Set(sources)];
     if (!uniqueSources.length) return;
 
@@ -491,9 +503,9 @@ export default function Home() {
     )));
 
     const applyResult = (result: Platform) => {
+      cacheDirty.current = true;
       setLivePlatforms((current) => {
         const next = current.map((item) => item.source === result.source ? result : item);
-        writePlatformCache(next);
         return next;
       });
     };
@@ -504,12 +516,12 @@ export default function Home() {
     }
     const signal = activeFetchControllerRef.current?.signal;
     const baseConcurrency = options?.concurrency ?? 8;
-    await runPlatformFetchPool(targets, baseConcurrency, applyResult, signal);
+    await runPlatformFetchPool(targets, baseConcurrency, applyResult, signal, options?.fresh);
     if (trackGlobalRefresh) setIsRefreshing(false);
   }, []);
 
   const refreshPlatform = useCallback((source: string) => {
-    void loadPlatforms([source], true, { trackGlobalRefresh: false });
+    void loadPlatforms([source], true, { trackGlobalRefresh: false, fresh: true });
   }, [loadPlatforms]);
 
   const updateCardPrefs = useCallback((updater: (current: CardPrefsData) => CardPrefsData) => {
@@ -813,6 +825,7 @@ export default function Home() {
 
   const refreshVisible = useCallback(() => {
     void loadPlatforms(pagedSources, true, {
+      fresh: true,
       concurrency: Math.min(PAGE_MAX_CONCURRENCY, pagedSources.length),
     });
   }, [loadPlatforms, pagedSources]);
