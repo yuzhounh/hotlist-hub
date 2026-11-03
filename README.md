@@ -4,6 +4,8 @@
 
 <h1 align="center">Hotlist Hub · 热榜汇</h1>
 
+<p align="center">简体中文 · <a href="README.en.md">English</a></p>
+
 <p align="center"><strong>新闻、社交、科技与文娱热榜，一屏尽览。</strong></p>
 
 <p align="center">
