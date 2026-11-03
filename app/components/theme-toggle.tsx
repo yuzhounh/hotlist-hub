@@ -1,5 +1,7 @@
 'use client';
 
+import { useI18n } from './i18n';
+
 export const THEME_KEY = 'rebanghui-theme';
 
 function SunIcon() {
@@ -20,7 +22,8 @@ function MoonIcon() {
 }
 
 export function ThemeToggle({ theme, ready, onToggle }: { theme: 'light' | 'dark'; ready: boolean; onToggle: () => void }) {
-  const nextThemeLabel = theme === 'dark' ? '切换浅色模式' : '切换深色模式';
+  const { t } = useI18n();
+  const nextThemeLabel = theme === 'dark' ? t('切换浅色模式') : t('切换深色模式');
 
   return (
     <button

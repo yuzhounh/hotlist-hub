@@ -5,6 +5,7 @@ import { categories, categoryCounts, normalizeSourceId, sourceCatalog, type Plat
 import { HeaderActions } from './components/header-actions';
 import { THEME_KEY } from './components/theme-toggle';
 import { useAuth } from './components/auth-provider';
+import { useI18n } from './components/i18n';
 import { formatItemMetric } from './metric-format';
 import { comparePlatformName, orderFavoritePlatforms, reorderSources } from './platform-sort';
 import { fetchJsonWithTimeout } from './lib/request-json';
@@ -408,6 +409,7 @@ async function runPlatformFetchPool(
 
 export default function Home() {
   const { user, ready: authReady } = useAuth();
+  const { t, lang } = useI18n();
   const [category, setCategory] = useState('全部');
   const [query, setQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -604,13 +606,13 @@ export default function Home() {
   }, [category, user?.uid]);
 
   const resetSorting = useCallback(() => {
-    if (!window.confirm('确定将收藏卡片恢复为加入收藏的顺序吗？')) return;
+    if (!window.confirm(t('确定将收藏卡片恢复为加入收藏的顺序吗？'))) return;
     updateCardPrefs((current) => {
       const order = { ...current.order };
       delete order[FAVORITES_CATEGORY];
       return { ...current, order };
     });
-  }, [updateCardPrefs]);
+  }, [updateCardPrefs, t]);
 
   const reorderPlatforms = useCallback((dragged: string, target: string) => {
     if (category !== FAVORITES_CATEGORY) return;
@@ -861,18 +863,18 @@ export default function Home() {
   const favoriteSortModeEnabled = category === FAVORITES_CATEGORY && sortModeEnabled;
 
   const categoryHeading = category === '全部'
-    ? '全部热榜'
+    ? t('全部热榜')
     : category === FAVORITES_CATEGORY
-      ? '我的收藏'
-      : `${category}热榜`;
+      ? t('我的收藏')
+      : (lang === 'en' ? `${category} rankings` : `${category}热榜`);
 
   return (
     <main>
       <header className="site-header app-shell">
         <div className="site-header-main">
           <div className="site-header-brand">
-            <div className="brand-title"><span className="brand-icon" aria-hidden="true"><i /><i /><i /></span><h1>热榜汇</h1></div>
-            <p className="site-tagline">热榜一屏尽览，此刻正在发生</p>
+            <div className="brand-title"><span className="brand-icon" aria-hidden="true"><i /><i /><i /></span><h1>{t('热榜汇')}</h1></div>
+            <p className="site-tagline">{t('热榜一屏尽览，此刻正在发生')}</p>
           </div>
           <HeaderActions
             isRefreshing={isRefreshing}
@@ -895,12 +897,12 @@ export default function Home() {
       </header>
 
       <div className="primary-bar">
-        <nav className="primary-tabs app-shell" aria-label="热榜分类">
+        <nav className="primary-tabs app-shell" aria-label={t('热榜分类')}>
           <button
             className={category === FAVORITES_CATEGORY ? 'active' : ''}
             onClick={() => selectCategory(FAVORITES_CATEGORY)}
           >
-            {FAVORITES_CATEGORY}{' '}
+            {t(FAVORITES_CATEGORY)}{' '}
             <small>{categoryTabCount(FAVORITES_CATEGORY)}</small>
           </button>
           <span className="primary-tabs-divider" aria-hidden="true" />
@@ -908,7 +910,7 @@ export default function Home() {
             className={category === '全部' ? 'active' : ''}
             onClick={() => selectCategory('全部')}
           >
-            全部{' '}
+            {t('全部')}{' '}
             <small>{categoryTabCount('全部')}</small>
           </button>
           {categories.slice(1).map((item) => (
@@ -927,23 +929,23 @@ export default function Home() {
       <div className="app-shell page-body">
         <div className="view-toolbar">
           <div className="search">
-            <button className="search-field-btn search-focus-btn" type="button" aria-label="聚焦搜索框" title="搜索" onClick={() => searchInputRef.current?.focus()}>
+            <button className="search-field-btn search-focus-btn" type="button" aria-label={t('聚焦搜索框')} title={t('搜索')} onClick={() => searchInputRef.current?.focus()}>
               <span className="search-magnifier-icon" aria-hidden="true" />
             </button>
-            <input ref={searchInputRef} aria-label="搜索平台或热点内容" value={query} onChange={(event) => { setQuery(event.target.value); setCurrentPage(1); }} type="search" placeholder="搜索平台或热点内容…" />
-            <button className="search-field-btn search-clear-btn" type="button" aria-label="清除搜索" title="清除搜索" disabled={!query} onClick={() => { setQuery(''); setCurrentPage(1); searchInputRef.current?.focus(); }}>
+            <input ref={searchInputRef} aria-label={t('搜索平台或热点内容')} value={query} onChange={(event) => { setQuery(event.target.value); setCurrentPage(1); }} type="search" placeholder={t('搜索平台或热点内容…')} />
+            <button className="search-field-btn search-clear-btn" type="button" aria-label={t('清除搜索')} title={t('清除搜索')} disabled={!query} onClick={() => { setQuery(''); setCurrentPage(1); searchInputRef.current?.focus(); }}>
               <span className="search-clear-icon" aria-hidden="true" />
             </button>
           </div>
         </div>
 
         <div className="content-heading">
-          <div><h2>{categoryHeading}</h2><p>{category === FAVORITES_CATEGORY ? favoriteSortModeEnabled ? '拖动卡片或在拖动按钮上按 Alt＋方向键调整顺序，变更会同步到账号。' : '卡片默认按加入收藏的顺序排列；可开启排序模式手动调整。' : '数字和英文名称优先，其余卡片按拼音排序。'}</p></div>
-          <span>{visiblePlatforms.length} 个平台 · 第 {safePage}/{pageCount} 页</span>
+          <div><h2>{categoryHeading}</h2><p>{category === FAVORITES_CATEGORY ? favoriteSortModeEnabled ? t('拖动卡片或在拖动按钮上按 Alt＋方向键调整顺序，变更会同步到账号。') : t('卡片默认按加入收藏的顺序排列；可开启排序模式手动调整。') : t('数字和英文名称优先，其余卡片按拼音排序。')}</p></div>
+          <span>{lang === 'en' ? `${visiblePlatforms.length} platforms · page ${safePage}/${pageCount}` : `${visiblePlatforms.length} 个平台 · 第 ${safePage}/${pageCount} 页`}</span>
         </div>
 
         {visiblePlatforms.length ? (
-          <section ref={platformGridRef} id="platform-grid" className="card-grid three-column" aria-label="平台热榜卡片墙">
+          <section ref={platformGridRef} id="platform-grid" className="card-grid three-column" aria-label={t('平台热榜卡片墙')}>
             {pagedPlatforms.map((platform) => {
               const isWide = wideSources.has(platform.source);
               const isExpanded = expandedSources.has(platform.source);
@@ -953,10 +955,10 @@ export default function Home() {
               const isDragging = draggingSource === platform.source;
               const isDropTarget = dropTarget === platform.source;
               const statusLabel = platform.status === 'error'
-                ? platform.items.length ? `使用上次数据 · ${platform.updated}` : '暂不可用'
+                ? platform.items.length ? t('使用上次数据 · {time}', { time: platform.updated }) : t('暂不可用')
                 : platform.status === 'success'
                   ? platform.updated
-                  : platform.status === 'idle' ? '等待加载' : '正在抓取…';
+                  : platform.status === 'idle' ? t('等待加载') : t('正在抓取…');
 
               return (
               <article
@@ -986,8 +988,8 @@ export default function Home() {
                       type="button"
                       className="card-drag-handle"
                       draggable
-                      aria-label="拖动排序"
-                      title="拖动排序；Alt＋↑/↓ 可用键盘移动"
+                      aria-label={t('拖动排序')}
+                      title={t('拖动排序；Alt＋↑/↓ 可用键盘移动')}
                       onKeyDown={(event) => {
                         if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return;
                         event.preventDefault();
@@ -1041,8 +1043,8 @@ export default function Home() {
                     <button
                       type="button"
                       className={`card-action-btn${platform.status === 'loading' ? ' is-spinning' : ''}`}
-                      aria-label={platform.status === 'loading' ? '刷新中' : '刷新该榜单'}
-                      title={platform.status === 'loading' ? '刷新中' : '刷新该榜单'}
+                      aria-label={platform.status === 'loading' ? t('刷新中') : t('刷新该榜单')}
+                      title={platform.status === 'loading' ? t('刷新中') : t('刷新该榜单')}
                       disabled={platform.status === 'loading'}
                       onClick={() => refreshPlatform(platform.source)}
                     >
@@ -1051,8 +1053,8 @@ export default function Home() {
                     <button
                       type="button"
                       className={`card-action-btn${isWide ? ' is-active' : ''}`}
-                      aria-label={isWide ? '收起宽度' : '展开视图'}
-                      title={isWide ? '收起宽度' : '展开视图（双倍列宽）'}
+                      aria-label={isWide ? t('收起宽度') : t('展开视图')}
+                      title={isWide ? t('收起宽度') : t('展开视图（双倍列宽）')}
                       aria-pressed={isWide}
                       onClick={() => toggleWide(platform.source)}
                     >
@@ -1062,10 +1064,10 @@ export default function Home() {
                       <button
                         type="button"
                         className={`card-action-btn${isExpanded ? ' is-active' : ''}`}
-                        aria-label={isExpanded ? '收起列表' : '展开内容'}
+                        aria-label={isExpanded ? t('收起列表') : t('展开内容')}
                         title={isExpanded
-                          ? `收起列表（显示 ${DEFAULT_ITEM_LIMIT} 条）`
-                          : `展开内容（共 ${platform.items.length} 条，最多 ${EXPANDED_ITEM_LIMIT} 条）`}
+                          ? t('收起列表（显示 {n} 条）', { n: DEFAULT_ITEM_LIMIT })
+                          : t('展开内容（共 {total} 条，最多 {max} 条）', { total: platform.items.length, max: EXPANDED_ITEM_LIMIT })}
                         aria-pressed={isExpanded}
                         onClick={() => toggleExpanded(platform.source)}
                       >
@@ -1075,8 +1077,8 @@ export default function Home() {
                     <button
                       type="button"
                       className={`card-action-btn${isFavorite ? ' is-favorite' : ''}`}
-                      aria-label={isFavorite ? '取消收藏' : '收藏该榜单'}
-                      title={isFavorite ? '取消收藏' : '收藏该榜单'}
+                      aria-label={isFavorite ? t('取消收藏') : t('收藏该榜单')}
+                      title={isFavorite ? t('取消收藏') : t('收藏该榜单')}
                       aria-pressed={isFavorite}
                       onClick={() => toggleFavorite(platform.source)}
                     >
@@ -1139,29 +1141,29 @@ export default function Home() {
                     </li>
                     );
                   })}
-                </ol> : <div className="card-empty">{platform.status === 'error' ? '该来源当前公共接口不可用' : platform.status === 'idle' ? '正在加载全部平台数据…' : '正在获取最新热榜…'}</div>}
+                </ol> : <div className="card-empty">{platform.status === 'error' ? t('该来源当前公共接口不可用') : platform.status === 'idle' ? t('正在加载全部平台数据…') : t('正在获取最新热榜…')}</div>}
                 <footer>
                   <span className={platform.status === 'error' ? 'source-error' : ''}>
                     <i /> {statusLabel}
-                    {platform.consecutiveFailures > 0 ? ` · 连续失败 ${platform.consecutiveFailures} 次` : ''}
-                    {platform.items.length ? ` · 显示 ${Math.min(visibleLimit, platform.items.length)}/${platform.items.length} 条` : ''}
+                    {platform.consecutiveFailures > 0 ? t(' · 连续失败 {n} 次', { n: platform.consecutiveFailures }) : ''}
+                    {platform.items.length ? t(' · 显示 {shown}/{total} 条', { shown: Math.min(visibleLimit, platform.items.length), total: platform.items.length }) : ''}
                   </span>
-                  <a className="full-list" href={platform.url} target="_blank" rel="noreferrer">查看完整榜单</a>
+                  <a className="full-list" href={platform.url} target="_blank" rel="noreferrer">{t('查看完整榜单')}</a>
                 </footer>
               </article>
               );
             })}
           </section>
-        ) : <div className="empty-state">{category === FAVORITES_CATEGORY ? '还没有收藏的平台，切换到其他分类后点击卡片上的星标即可添加' : '没有找到匹配的热点或平台'}</div>}
+        ) : <div className="empty-state">{category === FAVORITES_CATEGORY ? t('还没有收藏的平台，切换到其他分类后点击卡片上的星标即可添加') : t('没有找到匹配的热点或平台')}</div>}
 
-        {visiblePlatforms.length > pageSize && <nav className="pagination" aria-label="平台分页">
-          <button onClick={() => changePage(safePage - 1)} disabled={safePage === 1}>上一页</button>
-          <span>第 {safePage} 页，共 {pageCount} 页</span>
-          <button onClick={() => changePage(safePage + 1)} disabled={safePage === pageCount}>下一页</button>
+        {visiblePlatforms.length > pageSize && <nav className="pagination" aria-label={t('平台分页')}>
+          <button onClick={() => changePage(safePage - 1)} disabled={safePage === 1}>{t('上一页')}</button>
+          <span>{t('第 {page} 页，共 {pages} 页', { page: safePage, pages: pageCount })}</span>
+          <button onClick={() => changePage(safePage + 1)} disabled={safePage === pageCount}>{t('下一页')}</button>
         </nav>}
 
         <footer className="site-footer">
-          <span>热榜汇 · 数据仅用于趋势浏览</span>
+          <span>{t('热榜汇 · 数据仅用于趋势浏览')}</span>
         </footer>
       </div>
     </main>

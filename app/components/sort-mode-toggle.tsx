@@ -1,5 +1,7 @@
 'use client';
 
+import { useI18n } from './i18n';
+
 function SortHandleIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -19,13 +21,14 @@ type SortModeToggleProps = {
 };
 
 export function SortModeToggle({ enabled, onToggle }: SortModeToggleProps) {
+  const { t } = useI18n();
   return (
     <button
       className={`header-icon-btn sort-mode-toggle${enabled ? ' is-active' : ''}`}
       type="button"
-      aria-label={enabled ? '退出排序模式' : '开启排序模式'}
+      aria-label={enabled ? t('退出排序模式') : t('开启排序模式')}
       aria-pressed={enabled}
-      title={enabled ? '退出排序模式' : '开启排序模式'}
+      title={enabled ? t('退出排序模式') : t('开启排序模式')}
       onClick={onToggle}
     >
       <SortHandleIcon />

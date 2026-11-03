@@ -205,3 +205,10 @@
   backdrop-filter: none !important;
 }
 
+
+/* 语言切换（中 / EN） */
+.hotlist-lang-select{border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;border-radius:999px;padding:0 10px;height:34px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;}
+.hotlist-lang-select:hover{border-color:#2563eb;color:#2563eb;}
+.mobile-foot-row .hotlist-lang-select{height:36px;}
+
+.lang-toggle-text { font-size: 13px; font-weight: 700; line-height: 1; user-select: none; letter-spacing: -0.02em; display: grid; place-items: center; }
