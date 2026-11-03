@@ -6,6 +6,7 @@ import { AuthButton } from './auth-button';
 import { RankingNavigation } from './ranking-navigation';
 import { SortModeToggle } from './sort-mode-toggle';
 import { ThemeToggle } from './theme-toggle';
+import { LangToggle, useI18n } from './i18n';
 
 type HeaderActionsProps = {
   isRefreshing: boolean;
@@ -63,6 +64,7 @@ export function HeaderActions({
   categoryTabCount,
   categoryList = [],
 }: HeaderActionsProps) {
+  const { t } = useI18n();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -76,12 +78,13 @@ export function HeaderActions({
           type="button"
           onClick={onRefresh}
           disabled={isRefreshing}
-          aria-label={isRefreshing ? '更新中' : '刷新数据'}
-          title={isRefreshing ? '正在更新当前页…' : '刷新当前页数据'}
+          aria-label={isRefreshing ? t('更新中') : t('刷新数据')}
+          title={isRefreshing ? t('正在更新当前页…') : t('刷新当前页数据')}
         >
           <RefreshIcon size={20} />
         </button>
         <ThemeToggle theme={theme} ready={themeReady} onToggle={onToggleTheme} />
+        <LangToggle />
         <AuthButton
           syncStatus={preferenceSyncStatus}
           onRestoreCloud={onRestoreCloud}
@@ -95,8 +98,8 @@ export function HeaderActions({
           className="header-icon-btn mobile-menu-trigger"
           type="button"
           onClick={() => setMobileMenuOpen(true)}
-          aria-label="打开功能菜单"
-          title="打开功能菜单"
+          aria-label={t('打开功能菜单')}
+          title={t('打开功能菜单')}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
             <line x1="4" y1="6" x2="20" y2="6" />
@@ -110,19 +113,19 @@ export function HeaderActions({
       {mobileMenuOpen && typeof document !== 'undefined' && createPortal(
         <div className="mobile-drawer-layer" role="presentation">
           <div className="mobile-drawer-backdrop" onClick={() => setMobileMenuOpen(false)} />
-          <aside className="mobile-drawer-panel" role="dialog" aria-modal="true" aria-label="快捷设置与导航">
+          <aside className="mobile-drawer-panel" role="dialog" aria-modal="true" aria-label={t('快捷设置与导航')}>
             <div className="mobile-drawer-head">
               <div className="brand-title" style={{ margin: 0, gap: '8px' }}>
                 <span className="brand-icon" aria-hidden="true" style={{ width: 28, height: 28, padding: 6, borderRadius: 8 }}>
                   <i style={{ width: 3 }} /><i style={{ width: 3 }} /><i style={{ width: 3 }} />
                 </span>
-                <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>热榜汇</span>
+                <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('热榜汇')}</span>
               </div>
               <button
                 type="button"
                 className="mobile-drawer-close"
                 onClick={() => setMobileMenuOpen(false)}
-                aria-label="关闭菜单"
+                aria-label={t('关闭菜单')}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -135,7 +138,7 @@ export function HeaderActions({
               {/* 热榜分类导航（单栏排版，居顶） */}
               {categoryList.length > 0 && onSelectCategory && (
                 <div className="mobile-menu-section" style={{ gap: '8px' }}>
-                  <span className="mobile-menu-section-title">热榜分类</span>
+                  <span className="mobile-menu-section-title">{t('热榜分类')}</span>
                   <div className="mobile-category-list">
                     {categoryList.map((cat) => {
                       const isActive = currentCategory === cat;
@@ -162,9 +165,9 @@ export function HeaderActions({
               {/* 列表控制 */}
               {sortModeAvailable && (
                 <div className="mobile-menu-section">
-                  <span className="mobile-menu-section-title">列表控制</span>
+                  <span className="mobile-menu-section-title">{t('列表控制')}</span>
                   <div className="mobile-foot-row">
-                    <span className="mobile-foot-label">卡片排序</span>
+                    <span className="mobile-foot-label">{t('卡片排序')}</span>
                     <SortModeToggle enabled={sortModeEnabled} onToggle={onToggleSortMode} />
                   </div>
                 </div>
@@ -174,13 +177,13 @@ export function HeaderActions({
             <div className="mobile-drawer-foot">
               {/* 切换榜单 */}
               <div className="mobile-foot-row">
-                <span className="mobile-foot-label">切换榜单</span>
+                <span className="mobile-foot-label">{t('切换榜单')}</span>
                 <RankingNavigation />
               </div>
 
               {/* 刷新数据 */}
               <div className="mobile-foot-row">
-                <span className="mobile-foot-label">刷新数据</span>
+                <span className="mobile-foot-label">{t('刷新数据')}</span>
                 <button
                   className={`header-icon-btn header-refresh${isRefreshing ? ' is-spinning' : ''}`}
                   type="button"
@@ -189,8 +192,8 @@ export function HeaderActions({
                     setMobileMenuOpen(false);
                   }}
                   disabled={isRefreshing}
-                  aria-label={isRefreshing ? '更新中' : '刷新数据'}
-                  title={isRefreshing ? '正在更新当前页…' : '刷新当前页数据'}
+                  aria-label={isRefreshing ? t('更新中') : t('刷新数据')}
+                  title={isRefreshing ? t('正在更新当前页…') : t('刷新当前页数据')}
                 >
                   <RefreshIcon size={20} />
                 </button>
@@ -198,13 +201,19 @@ export function HeaderActions({
 
               {/* 外观主题 */}
               <div className="mobile-foot-row">
-                <span className="mobile-foot-label">外观主题</span>
+                <span className="mobile-foot-label">{t('外观主题')}</span>
                 <ThemeToggle theme={theme} ready={themeReady} onToggle={onToggleTheme} />
+              </div>
+
+              {/* 界面语言 */}
+              <div className="mobile-foot-row">
+                <span className="mobile-foot-label">{t('界面语言')}</span>
+                <LangToggle />
               </div>
 
               {/* 账户与同步 */}
               <div className="mobile-foot-row">
-                <span className="mobile-foot-label">账户与同步</span>
+                <span className="mobile-foot-label">{t('账户与同步')}</span>
                 <AuthButton
                   syncStatus={preferenceSyncStatus}
                   onRestoreCloud={onRestoreCloud}

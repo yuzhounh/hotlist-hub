@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from './auth-provider';
+import { useI18n } from './i18n';
 
 function displayName(name: string | null | undefined, email: string | null | undefined) {
   const value = name?.trim() || email?.split('@')[0] || '用户';
@@ -23,6 +24,7 @@ const syncLabels = {
 
 export function AuthButton({ syncStatus, onRestoreCloud, onResetSorting }: AuthButtonProps) {
   const { user, ready, configured, signingIn, signInError, signInWithGoogle, signOutUser } = useAuth();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -47,14 +49,14 @@ export function AuthButton({ syncStatus, onRestoreCloud, onResetSorting }: AuthB
   if (!configured) return null;
 
   if (!ready) {
-    return <button className="auth-button" type="button" disabled>登录加载中</button>;
+    return <button className="auth-button" type="button" disabled>{t('登录加载中')}</button>;
   }
 
   if (!user) {
     return (
       <div className="auth-login-wrap">
         <button className="auth-button" type="button" onClick={() => void signInWithGoogle()} disabled={signingIn}>
-          {signingIn ? '登录中…' : 'Google 登录'}
+          {signingIn ? t('登录中…') : t('Google 登录')}
         </button>
         {signInError && <div className="auth-login-error" role="alert">{signInError}</div>}
       </div>
@@ -68,7 +70,7 @@ export function AuthButton({ syncStatus, onRestoreCloud, onResetSorting }: AuthB
       <button
         className="auth-menu-trigger"
         type="button"
-        aria-label={`账户：${name}`}
+        aria-label={t('账户：{name}', { name })}
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
@@ -94,17 +96,17 @@ export function AuthButton({ syncStatus, onRestoreCloud, onResetSorting }: AuthB
             <div className="auth-menu-meta">
               <strong>{name}</strong>
               {user.email && <small>{user.email}</small>}
-              <small>{syncLabels[syncStatus]}</small>
+              <small>{t(syncLabels[syncStatus])}</small>
             </div>
           </div>
           <button className="auth-menu-logout" type="button" role="menuitem" onClick={() => { setOpen(false); onRestoreCloud(); }}>
-            从云端恢复设置
+            {t('从云端恢复设置')}
           </button>
           <button className="auth-menu-logout" type="button" role="menuitem" onClick={() => { setOpen(false); onResetSorting(); }}>
-            重置手动排序
+            {t('重置手动排序')}
           </button>
           <button className="auth-menu-logout" type="button" role="menuitem" onClick={() => { setOpen(false); void signOutUser(); }}>
-            退出
+            {t('退出')}
           </button>
         </div>
       )}

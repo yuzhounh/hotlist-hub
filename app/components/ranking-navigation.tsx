@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useI18n } from './i18n';
 
 type RankingCategory = {
   name: string;
@@ -83,6 +84,7 @@ export function RankingNavigation() {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const drawerCloseRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 820);
@@ -175,8 +177,8 @@ export function RankingNavigation() {
           ref={triggerRef}
           className={`header-icon-btn${menuOpen || drawerOpen ? ' is-active' : ''}`}
           type="button"
-          aria-label="榜单导航"
-          title="榜单导航"
+          aria-label={t('榜单导航')}
+          title={t('榜单导航')}
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           aria-controls="ranking-navigation-menu"
@@ -188,7 +190,7 @@ export function RankingNavigation() {
         {/* 桌面端下拉浮层 */}
         {menuOpen && !isMobile ? (
           <div className="ranking-navigation-menu" id="ranking-navigation-menu" role="menu">
-            <div className="ranking-navigation-menu-title">外部榜单</div>
+            <div className="ranking-navigation-menu-title">{t('外部榜单')}</div>
             {RANKING_SITES.map((site) => (
               <a
                 key={site.url}
@@ -204,7 +206,7 @@ export function RankingNavigation() {
             ))}
             <div className="ranking-navigation-menu-divider" />
             <button className="ranking-categories-trigger" type="button" role="menuitem" onClick={openDrawer}>
-              <span><strong>浏览今日热榜全部分类</strong><small>16 个分类入口</small></span>
+              <span><strong>{t('浏览今日热榜全部分类')}</strong><small>{t('16 个分类入口')}</small></span>
               <b aria-hidden="true">→</b>
             </button>
           </div>
@@ -215,15 +217,15 @@ export function RankingNavigation() {
       {menuOpen && isMobile && typeof document !== 'undefined' && createPortal(
         <div className="ranking-drawer-layer" role="presentation" style={{ zIndex: 1020 }}>
           <div className="ranking-drawer-backdrop" onClick={() => setMenuOpen(false)} />
-          <aside className="ranking-drawer ranking-site-drawer" role="dialog" aria-modal="true" aria-label="外部榜单导航">
+          <aside className="ranking-drawer ranking-site-drawer" role="dialog" aria-modal="true" aria-label={t('外部榜单导航')}>
             <header className="ranking-drawer-head">
               <div className="brand-title" style={{ margin: 0, gap: '8px' }}>
                 <span className="brand-icon" aria-hidden="true" style={{ width: 28, height: 28, padding: 5, borderRadius: 8, display: 'grid', placeItems: 'center' }}>
                   <NavigationIcon stroke="#fff" size={15} />
                 </span>
-                <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>外部榜单</span>
+                <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('外部榜单')}</span>
               </div>
-              <button className="ranking-drawer-close" type="button" aria-label="关闭" onClick={() => setMenuOpen(false)}>
+              <button className="ranking-drawer-close" type="button" aria-label={t('关闭')} onClick={() => setMenuOpen(false)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
@@ -252,8 +254,8 @@ export function RankingNavigation() {
               <div className="ranking-navigation-menu-divider" style={{ margin: '10px 0' }} />
               <button className="ranking-categories-trigger-card" type="button" onClick={openDrawer}>
                 <div className="ranking-site-info">
-                  <strong>今日热榜全部分类</strong>
-                  <small>16 个分类入口</small>
+                  <strong>{t('今日热榜全部分类')}</strong>
+                  <small>{t('16 个分类入口')}</small>
                 </div>
                 <b aria-hidden="true">→</b>
               </button>
@@ -278,9 +280,9 @@ export function RankingNavigation() {
                     <rect x="3" y="14" width="7" height="7" />
                   </svg>
                 </span>
-                <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>今日分类</span>
+                <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('今日分类')}</span>
               </div>
-              <button ref={drawerCloseRef} className="ranking-drawer-close" type="button" aria-label="关闭" title="关闭" onClick={closeDrawer}>
+              <button ref={drawerCloseRef} className="ranking-drawer-close" type="button" aria-label={t('关闭')} title={t('关闭')} onClick={closeDrawer}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
@@ -291,8 +293,8 @@ export function RankingNavigation() {
             <div className="ranking-category-search-wrap">
               <label className="ranking-category-search">
                 <span aria-hidden="true">⌕</span>
-                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索分类…" />
-                {query ? <button type="button" aria-label="清除搜索" onClick={() => setQuery('')}>×</button> : null}
+                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('搜索分类…')} />
+                {query ? <button type="button" aria-label={t('清除搜索')} onClick={() => setQuery('')}>×</button> : null}
               </label>
             </div>
 
@@ -313,7 +315,7 @@ export function RankingNavigation() {
                   </div>
                 </section>
               ))}
-              {!filteredGroups.length ? <div className="ranking-category-empty">没有匹配的分类</div> : null}
+              {!filteredGroups.length ? <div className="ranking-category-empty">{t('没有匹配的分类')}</div> : null}
             </div>
           </aside>
         </div>,
