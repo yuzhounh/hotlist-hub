@@ -153,7 +153,7 @@ export function HeaderActions({
                             setMobileMenuOpen(false);
                           }}
                         >
-                          <span className="mobile-category-name">{cat}</span>
+                          <span className="mobile-category-name">{t(cat)}</span>
                           <span className="mobile-category-count">{count}</span>
                         </button>
                       );

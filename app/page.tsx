@@ -866,7 +866,7 @@ export default function Home() {
     ? t('全部热榜')
     : category === FAVORITES_CATEGORY
       ? t('我的收藏')
-      : (lang === 'en' ? `${category} rankings` : `${category}热榜`);
+      : (lang === 'en' ? `${t(category)} rankings` : `${category}热榜`);
 
   return (
     <main>
@@ -919,7 +919,7 @@ export default function Home() {
               className={category === item ? 'active' : ''}
               onClick={() => selectCategory(item)}
             >
-              {item}{' '}
+              {t(item)}{' '}
               <small>{categoryTabCount(item)}</small>
             </button>
           ))}
