@@ -214,7 +214,7 @@ export function LangToggle({ className }: { className?: string }) {
       title={lang === 'zh' ? 'Switch to English' : '切换为中文'}
     >
       <span className="lang-toggle-text">
-        {lang === 'zh' ? '中' : 'EN'}
+        {lang === 'zh' ? 'EN' : '中'}
       </span>
     </button>
   );
