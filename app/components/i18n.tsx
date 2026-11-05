@@ -201,7 +201,7 @@ export function LangSelect({ className }: { className?: string }) {
   );
 }
 
-export function LangToggle({ className }: { className?: string }) {
+export function LangToggle({ className, current }: { className?: string; current?: boolean }) {
   const { lang, setLang } = useI18n();
   const toggle = () => setLang(lang === 'zh' ? 'en' : 'zh');
 
@@ -214,7 +214,7 @@ export function LangToggle({ className }: { className?: string }) {
       title={lang === 'zh' ? 'Switch to English' : '切换为中文'}
     >
       <span className="lang-toggle-text">
-        {lang === 'zh' ? 'EN' : '中'}
+        {current ? (lang === 'zh' ? '中' : 'EN') : (lang === 'zh' ? 'EN' : '中')}
       </span>
     </button>
   );
