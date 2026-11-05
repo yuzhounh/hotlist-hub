@@ -21,7 +21,7 @@ function MoonIcon() {
   );
 }
 
-export function ThemeToggle({ theme, ready, onToggle }: { theme: 'light' | 'dark'; ready: boolean; onToggle: () => void }) {
+export function ThemeToggle({ theme, ready, onToggle, current }: { theme: 'light' | 'dark'; ready: boolean; onToggle: () => void; current?: boolean }) {
   const { t } = useI18n();
   const nextThemeLabel = theme === 'dark' ? t('切换浅色模式') : t('切换深色模式');
 
@@ -34,7 +34,7 @@ export function ThemeToggle({ theme, ready, onToggle }: { theme: 'light' | 'dark
       onClick={onToggle}
       disabled={!ready}
     >
-      {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+      {current ? (theme === 'dark' ? <MoonIcon /> : <SunIcon />) : (theme === 'dark' ? <SunIcon /> : <MoonIcon />)}
     </button>
   );
 }

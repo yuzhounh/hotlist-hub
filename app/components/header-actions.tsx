@@ -202,13 +202,13 @@ export function HeaderActions({
               {/* 外观主题 */}
               <div className="mobile-foot-row">
                 <span className="mobile-foot-label">{t('外观主题')}</span>
-                <ThemeToggle theme={theme} ready={themeReady} onToggle={onToggleTheme} />
+                <ThemeToggle theme={theme} ready={themeReady} onToggle={onToggleTheme} current />
               </div>
 
               {/* 界面语言 */}
               <div className="mobile-foot-row">
                 <span className="mobile-foot-label">{t('界面语言')}</span>
-                <LangToggle />
+                <LangToggle current />
               </div>
 
               {/* 账户与同步 */}
